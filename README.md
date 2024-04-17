@@ -32,8 +32,16 @@ Decided to focus first on formal NUTS2 and be more methodic
 Currently with a swollen infected eyelid
 
 16.04.2024
-First round, screened Ardeco. eye is getting better. Not worked at all for RBI and outside is raining. Still need to screen for Capital Stock/Houselhold/Capital formation. then i can switch to fill missing values with eurostat/wiiw, and after that fill remianing missin values with central banks
+First round, screened Ardeco. eye is getting better. Not worked at all for RBI and outside is raining. Still need to screen for Capital Stock/Houselhold/Capital formation. 
+----------------
+Finished scanning Ardeco. Now, I can switch to fill missing values with eurostat/wiiw, and after that fill remaning missin values with central banks
 
 THIS for formal NUTS2!
 
 have a look to moldova and kosovo as they are region-state.
+
+17.04.2024
+The eye went crazy yesterday night, today was good. Hope it resists thorough the seminar with google. 
+Tidied data eurostat.
+
+Now only wiiw is left, before filling in with national data sources.

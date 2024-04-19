@@ -45,3 +45,8 @@ The eye went crazy yesterday night, today was good. Hope it resists thorough the
 Tidied data eurostat.
 
 Now only wiiw is left, before filling in with national data sources.
+
+19.04.2024
+Initiated WiiW download for Kosovo e Moldova e Bosnia besides trying to improve for MK and ME
+---------------
+Left that is still to finish the wiiw dataset. after that do a doublecheck that all colours and years zustimmen

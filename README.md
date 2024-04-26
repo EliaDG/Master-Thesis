@@ -50,3 +50,11 @@ Now only wiiw is left, before filling in with national data sources.
 Initiated WiiW download for Kosovo e Moldova e Bosnia besides trying to improve for MK and ME
 ---------------
 Left that is still to finish the wiiw dataset. after that do a doublecheck that all colours and years zustimmen
+
+20.04.2024
+Done double check colors while giving a concert with Lana del Rey
+
+21.04.2024
+Cold ass sunday, Got some fries at MacDonald and called isacco. Found out that Albania doesnt have any data. So disappointed. Considering idea of taking it at national level. Standards would fit. Will write an email to learn more about municipalities data.
+
+Tomorrow will write email to Instat e WUBib about ESRI.

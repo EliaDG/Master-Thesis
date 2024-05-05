@@ -58,3 +58,9 @@ Done double check colors while giving a concert with Lana del Rey
 Cold ass sunday, Got some fries at MacDonald and called isacco. Found out that Albania doesnt have any data. So disappointed. Considering idea of taking it at national level. Standards would fit. Will write an email to learn more about municipalities data.
 
 Tomorrow will write email to Instat e WUBib about ESRI.
+
+27.04.2024
+Hello. Elia, here. Did you miss me? Probably not, given thta all i do is just stuffing you with data. You know who did miss me tho? the fuckking orzaiolo on my eye. He is back, bigger than ever, and legit, i look like quasimodo. I will distract myself from it collecting some more data! yipppy!
+
+Okay, after one hour i collected some data for MK and RS but have some problems with some data points which i do not think will be feasible get....
+I go cooking now byeeee

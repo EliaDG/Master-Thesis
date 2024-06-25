@@ -99,7 +99,7 @@ plot <- ggplot(data = world) +
   geom_sf(data = jesus, aes(fill = "Crespo Cuaresma et al. (2014)"), color = "black") +
   geom_sf(data = extra, aes(fill = "Extension"), color = "black") +
   geom_text(data = candidates, aes(x = X, y = Y, label = number), color = "white", size = 5, fontface = "bold") +
-  scale_fill_manual(name = "Group:", values = c("Crespo Cuaresma et al. (2014)" = "chartreuse", "Extension" = "salmon")) +
+  scale_fill_manual(name = "Group:", values = c("Crespo Cuaresma et al. (2014)" = "#2ca25f", "Extension" = "salmon")) +
   theme_light() +
   theme(panel.background = element_rect(fill = "lightblue"),
         title = element_text(face = "bold", size = 12),
@@ -152,8 +152,8 @@ regions <- rbind(extra, jesus) %>%
   st_make_valid() %>%
   st_transform(crs = st_crs(4326)) %>% 
   arrange(GID_0)
-
-
+levels(regions$subregion)
+table(regions$subregion)
 glimpse(regions)
 
 plot_2 <- ggplot(data = world) +
@@ -271,8 +271,9 @@ region_pairs <- list(c("Sicilia", "Calabria"),
                      c("Hovedstaden", "Sydsverige"),
                      c("Åland", "Etelä-Suomi"),
                      c("Kosovo", "Veri"),
-                     c("Malta", "Sicilia"))
-value_pairs <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                     c("Malta", "Sicilia"),
+                     c("Kent", "Nord-Pas de Calais"))
+value_pairs <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 new <- update_w_queen(W.queen, region_pairs, value_pairs)

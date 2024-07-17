@@ -158,17 +158,17 @@ WDI_data <- WDI %>%
   pivot_wider(names_from = `Series Name`,
               values_from = Values) %>%
   rename(Name = 2,
-         Labor_force_EXTRA = 4,
+         Labor_force_abs = 4,
          NEET_share = 5,
          A__Unempl_edu_3_share = 6,
          A__Unempl_edu_2_share = 8,
          A__Unempl_edu_1_share = 7,
-         Unempl_rate_EXTRA = 9,
+         Unempl_rate = 9,
          Migration_abs = 11,
          A__LF_edu_2_share = 12,
          A__LF_edu_1_share = 13,
          A__LF_edu_3_share = 14,
-         GFCF_share_EXTRA = 15,
+         GFCF_share = 15,
          GFCF_NCU = 16,
          ISCED_1 = `Educational attainment, at least completed primary, population 25+ years, total (%) (cumulative)`, #highest cumulative percentage
          ISCED_2 = `Educational attainment, at least completed lower secondary, population 25+, total (%) (cumulative)`,
@@ -185,13 +185,14 @@ WDI_data <- WDI %>%
          Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
          Pop_edu_1 = (ISCED_1 - ISCED_3)/100,
          NEET_share = NEET_share/100,
+         GFCF_share = GFCF_share/100,
          A__Unempl_edu_1_share = A__Unempl_edu_1_share/100,
          A__Unempl_edu_2_share = A__Unempl_edu_2_share/100,
          A__Unempl_edu_3_share = A__Unempl_edu_3_share/100,
          A__LF_edu_1_share = A__LF_edu_1_share/100,
          A__LF_edu_2_share = A__LF_edu_2_share/100,
          A__LF_edu_3_share = A__LF_edu_3_share/100) %>% 
-  select(-10, -Unempl_rate_EXTRA, -Labor_force_EXTRA, -starts_with("ISCED_"))
+  select(-10, -Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"))
 
 #Merging ----
 candidates <- full_join(Edu_MD, LFS_XK, by = c("NUTS", "Name", "Year",

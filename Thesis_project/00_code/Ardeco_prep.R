@@ -93,7 +93,8 @@ GVA_Nace <- SUVGZ %>%
          Name = if_else(NUTS == "HU10", "Közép-Magyarország (NUTS 2013)", Name)) %>% #Million EUR  
   pivot_wider(names_from = NACE,
               values_from = GVA_Nace_abs,
-              names_prefix = "GVA_NACE_")
+              names_prefix = "GVA_NACE_") %>% 
+  mutate(`GVA_NACE_L-M-N` = GVA_NACE_L + `GVA_NACE_M-N`)
 
 Emp_Nace_Ardeco <- SNETZ %>%
   select(-"Unit") %>%
@@ -104,11 +105,13 @@ Emp_Nace_Ardeco <- SNETZ %>%
          Name = if_else(NUTS == "HU10", "Közép-Magyarország (NUTS 2013)", Name)) %>% #Thousand People  
   pivot_wider(names_from = NACE,
               values_from = Emp_Nace_abs,
-              names_prefix = "EMP_NACE_")
+              names_prefix = "EMP_NACE_") %>% 
+  mutate(`EMP_NACE_L-M-N` = EMP_NACE_L + `EMP_NACE_M-N`)
 
 # Additional sources ----
 Emp_Nace_TR <- read_excel("01_data-input/Eurostat/lfst_r_lfe2en2_Turkey.xlsx", sheet = "Data_clean", na = ":") %>%
-  mutate(across(where(is.double), ~ . * 1000)) %>% 
+  mutate(across(where(is.double), ~ . * 1000),
+         `EMP_NACE_L-M-N` = EMP_NACE_L + `EMP_NACE_M-N`) %>% 
   rename( NUTS = 1,
           Name = 2,
           Year = 3)

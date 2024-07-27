@@ -71,7 +71,8 @@ GVA_Nace <- gva_nace %>%
   pivot_wider(names_from = Nace,
               values_from = GVA_Nace_abs,
               names_prefix = "GVA_NACE_") %>% 
-  rename(GVA_NCU = GVA_NACE_Total)
+  rename(GVA_NCU = GVA_NACE_Total) %>% 
+  mutate(`GVA_NACE_L-M-N` = `GVA_NACE_L` + `GVA_NACE_M-N`)
 
 Population <- pop %>% 
   rename(NUTS = 1,

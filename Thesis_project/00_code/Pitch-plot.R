@@ -41,7 +41,9 @@ XKO <- st_read(dsn ="01_data-input/Shapefiles/gadm41_XKO_0.shp") %>%
 NUTS2 <- get_eurostat_geospatial(
   resolution = "01",
   nuts_level = 2,
-  year = 2021) %>%
+  year = 2021,
+  cache = TRUE,
+  update_cache = TRUE) %>%
   select(1, 4:5, 12) %>%
   rename(GID_0 = CNTR_CODE,
          NAME_1 = NAME_LATN)
@@ -259,3 +261,5 @@ plot_3 <- ggplot(data = World) +
 # ggsave("study_area.png", plot = plot_1, device = "png", width = 12.8, height = 9.06)
 # ggsave("macroregions.png", plot = plot_2, device = "png", width = 12.8, height = 9.06)
 # ggsave("queen.png", plot = plot_3, device = "png", width = 12.8, height = 9.06)
+regions$NAME_1 <- iconv(regions$NAME_1, to = "UTF-8")
+st_write(regions, here("02_intermediary-input", "geometries.shp"))

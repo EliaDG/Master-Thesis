@@ -77,3 +77,24 @@ mapping_nuts <- function(nuts_code) {
     return(NA)
   }
 }
+
+
+merge_geometries <- function(data, nuts, new_nuts, new_name) {
+  combined_geometry <- data %>%
+    filter(NUTS %in% nuts) %>%
+    st_union()
+  
+  new_row <- data.frame(
+    NUTS = new_nuts,
+    Name = new_name,
+    geometry = st_sfc(combined_geometry)
+  )
+  
+  new_row <- st_as_sf(new_row, sf_column_name = "geometry", crs = st_crs(data))
+  
+  data <- data %>%
+    filter(!NUTS %in% nuts) %>%
+    bind_rows(new_row)
+  
+  return(data)
+}

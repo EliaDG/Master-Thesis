@@ -172,10 +172,12 @@ ardeco_list <- list(Emp, GDP_EUR, GFCF_EUR, GVA, GVA_Nace, Migr, Pop, Prod, Unem
 ardeco_data <- Reduce(function(x, y) merge(x, y, by = c("NUTS", "Name", "Year"), all.x = TRUE), ardeco_list)
 
 ardeco <- ardeco_data %>%
-  full_join(Emp_Nace, by =c("NUTS", "Year")) %>% #Second round of merging because Name discrepancy
-  filter(!NUTS %in% c("AL01", "AL02", "AL03"),
-         Year  %in% c(2009:2019)) %>%
-  arrange(NUTS, Year)
+  full_join(Emp_Nace, by = c("NUTS", "Year")) %>% # Second round of merging because of Name discrepancy
+  arrange(NUTS, Year) %>%
+  group_by(Name, NUTS) %>%
+  mutate(GDP_growth = (GDP_EUR - lag(GDP_EUR)) / lag(GDP_EUR)) %>%
+  filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019)) %>%
+  ungroup()
 
 #SAVING
 write.csv(ardeco, file = here("02_intermediary-input", "ardeco_dataset.csv"), row.names = FALSE)

@@ -57,7 +57,7 @@ data_EU <- full_join(ardeco, eurostat) %>%
          Emp_edu_1_rate = coalesce(Emp_edu_1_rate, Emp_edu_1_rate.AL),
          Emp_edu_2_rate = coalesce(Emp_edu_2_rate, Emp_edu_2_rate.AL),
          Emp_edu_3_rate = coalesce(Emp_edu_3_rate, Emp_edu_3_rate.AL)) %>%
-  select(1:3, Migration_abs, Labor_Productivity_abs, Wage_EUR, Wage_NCU, Activity_rate, 50:78)
+  select(1:5, Migration_abs, Population_abs, Labor_Productivity_abs, Wage_EUR, Wage_NCU, GDP_growth, Activity_rate, 51:79)
 
 data_EXTRA <- extra %>%
   mutate(Labor_force_abs = Employment_abs + Unemployment_abs,
@@ -109,30 +109,13 @@ data_EXTRA <- extra %>%
          Pop_edu_1 = if_else(NUTS == "XK00", A__LF_edu_1_share, Pop_edu_1),
          Pop_edu_2 = if_else(NUTS == "XK00", A__LF_edu_2_share, Pop_edu_2),
          Pop_edu_3 = if_else(NUTS == "XK00", A__LF_edu_3_share, Pop_edu_3)) %>% 
-  select(1:3, Activity_rate, Wage_EUR, Wage_NCU, NEET_share, Migration_abs, GFCF_share, 51:78)
+  select(1:3, Employment_abs, GDP_EUR, Population_abs, GDP_growth, Activity_rate, Wage_EUR, Wage_NCU, NEET_share, Migration_abs, GFCF_share, 52:79)
 
 dataset <- full_join(data_EU, data_EXTRA) %>%
   arrange(NUTS, Year) %>% 
   mutate(Country = sapply(NUTS, mapping_nuts)) %>% 
-  select(Country, everything()) %>% 
+  select(Country, NUTS, Name, Year, GDP_growth, everything()) %>% 
   select(-c(Wage_NCU,Unemp_edu_1_rate,Unemp_edu_2_rate,Unemp_edu_3_rate))
 
-## Overview dataset: ----
-ex1 <- dataset %>%
-  filter(Country %in% c("Albania", "Bosnia and Herzegovina","Montenegro", "North Macedonia", "Turkey", "Moldova", "Kosovo", "Serbia"))
-length(unique(ex1$NUTS))
-ex2 <- dataset %>%
-  filter(!Country %in% c("Albania","Bosnia and Herzegovina", "Montenegro", "North Macedonia", "Turkey", "Moldova", "Kosovo", "Serbia"))
-length(unique(ex2$NUTS))
-
-summary(dataset)
-length(unique(dataset$NUTS))
-total_observations <- nrow(dataset) * ncol(dataset)
-total_NAs <- sum(is.na(dataset))
-(total_NAs / total_observations) * 100
-
-NAs_per_column <- colSums(is.na(dataset))
-round((NAs_per_column / nrow(dataset)) * 100,2)
-
 #SAVING
-write.csv(dataset, file = here("03_final-input", "dataset.csv"), row.names = FALSE)
+write.csv(dataset, file = here("02_intermediary-input", "dataset-merged.csv"), row.names = FALSE)

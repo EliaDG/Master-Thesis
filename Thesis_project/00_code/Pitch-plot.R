@@ -257,9 +257,7 @@ plot_3 <- ggplot(data = World) +
   geom_sf(data = queen_lines, color = "yellow", size = 0.8) +
   coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
 
-# # SAVING
+# SAVING
 # ggsave("study_area.png", plot = plot_1, device = "png", width = 12.8, height = 9.06)
 # ggsave("macroregions.png", plot = plot_2, device = "png", width = 12.8, height = 9.06)
 # ggsave("queen.png", plot = plot_3, device = "png", width = 12.8, height = 9.06)
-regions$NAME_1 <- iconv(regions$NAME_1, to = "UTF-8")
-st_write(regions, here("02_intermediary-input", "geometries.shp"))

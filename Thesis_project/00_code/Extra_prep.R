@@ -60,7 +60,10 @@ GDP <- gdp %>%
   mutate(GDP_abs = GDP_abs*1000000) %>% 
   pivot_wider(names_from = Unit,
               values_from = GDP_abs,
-              names_prefix = "GDP_")
+              names_prefix = "GDP_") %>%
+  group_by(Name, NUTS) %>%
+  mutate(GDP_growth = (GDP_EUR - lag(GDP_EUR)) / lag(GDP_EUR)) %>% 
+  ungroup()
 
 GVA_Nace <- gva_nace %>%
   select(-"Unit") %>%

@@ -69,7 +69,10 @@ dataset_complete <- dataset %>%
   full_join(NUTS2_complete, by = c("NUTS")) %>%
   st_as_sf() %>%
   mutate(Area = as.numeric(st_area(geometry)),
-         #Centroid = st_centroid(geometry),
+         Centroid = st_centroid(geometry),
+         Coor = st_coordinates(Centroid),
+         Lon = Coor[,"X"],
+         Lat = Coor[,"Y"],
          Subregion = case_when(
            Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey") ~ "EU Candidates",
            Country %in% c("Poland", "Czeck Republic", "Slovakia", "Hungary", "Lithuania", "Lavtia", "Estonia", "Croatia", "Bulgaria","Greece", "Romania", "Cyprus") ~ "Central-Eastern Europe",
@@ -138,7 +141,7 @@ dataset_complete <- dataset %>%
          Employment_density = Employment_abs/Area,
          Population_density = Population_abs/Area) %>%
   select(-geometry, Country, NUTS, Name, Subregion, Year, everything(), geometry) %>% 
-  select(-Area, -Population_abs, -GDP_EUR, -Employment_abs) %>% 
+  select(-Area, -Population_abs, -GDP_EUR, -Employment_abs, -Coor) %>% 
   st_cast("MULTIPOLYGON")
 
 #SAVING

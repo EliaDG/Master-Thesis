@@ -98,3 +98,30 @@ merge_geometries <- function(data, nuts, new_nuts, new_name) {
   
   return(data)
 }
+
+update_w_queen <- function(W.queen, region_pairs, value_pairs) {
+  # Ensure the lengths of region_pairs and value_pairs match
+  if (length(region_pairs) != length(value_pairs)) {
+    stop("The lengths of region_pairs and value_pairs must match.")
+  }
+  
+  for (i in seq_along(region_pairs)) {
+    region1 <- region_pairs[[i]][1]
+    region2 <- region_pairs[[i]][2]
+    value <- value_pairs[i]
+    
+    row_index1 <- which(rownames(W.queen) == region1)
+    col_index1 <- which(colnames(W.queen) == region2)
+    row_index2 <- which(rownames(W.queen) == region2)
+    col_index2 <- which(colnames(W.queen) == region1)
+    
+    if (length(row_index1) > 0 && length(col_index1) > 0 && length(row_index2) > 0 && length(col_index2) > 0) {
+      W.queen[row_index1, col_index1] <- value
+      W.queen[row_index2, col_index2] <- value
+    } else {
+      warning(paste("One or both regions not found in the matrix:", region1, region2))
+    }
+  }
+  
+  return(W.queen)
+}

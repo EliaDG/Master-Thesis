@@ -212,7 +212,10 @@ candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)
   arrange(NUTS, Year) %>% 
   mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
          Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
-         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%
+         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y),
+         Pop_edu_1 = if_else(NUTS == "MD00", Pop_edu_1/Population_abs, Pop_edu_1),
+         Pop_edu_2 = if_else(NUTS == "MD00", Pop_edu_2/Population_abs, Pop_edu_2),
+         Pop_edu_3 = if_else(NUTS == "MD00", Pop_edu_3/Population_abs, Pop_edu_3)) %>%
   select(-ends_with(".x"), -ends_with(".y")) %>% 
   rename(Employment_abs = EMP_NACE_Total)
 
@@ -220,7 +223,7 @@ candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)
 write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)
 
 #Appendix ----
-# WDI_BA_Edu <- WDI %>% 
+# WDI_BA_Edu <- WDI %>%
 #   pivot_longer(cols = starts_with("20"),
 #                names_to = "Year",
 #                values_to = "Values") %>%
@@ -248,12 +251,12 @@ write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.
 #          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
 #          ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`,
 #          Life_exp.x = 25,
-#          Fertility_rate.x = 26) %>% 
+#          Fertility_rate.x = 26) %>%
 #   filter(Year %in% 2009:2019) %>%
-#   select(-ends_with(".x"), -10) %>% 
+#   select(-ends_with(".x"), -10) %>%
 #   select(NUTS, Name, Year,
 #          ISCED_8, ISCED_7, ISCED_6, ISCED_5,
-#          ISCED_4, ISCED_3, ISCED_2, ISCED_1, everything()) %>% 
+#          ISCED_4, ISCED_3, ISCED_2, ISCED_1) %>%
 #   mutate(Pop_edu_3 = ISCED_5,
 #          Pop_edu_2 = (ISCED_3 - ISCED_5), #here ISCED_4 and ISCED_5 are the same
 #          Pop_edu_1 = (ISCED_1 - ISCED_3))

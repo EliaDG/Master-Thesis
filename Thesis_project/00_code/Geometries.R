@@ -67,7 +67,7 @@ NUTS2_complete <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BI
 
 dataset_complete <- dataset %>%
   full_join(NUTS2_complete, by = c("NUTS")) %>%
-  st_as_sf() %>%
+  st_as_sf(crs = "WGS84") %>% 
   mutate(Area = as.numeric(st_area(geometry)),
          Centroid = st_centroid(geometry),
          Coor = st_coordinates(Centroid),
@@ -144,5 +144,22 @@ dataset_complete <- dataset %>%
   select(-Area, -Population_abs, -GDP_EUR, -Employment_abs, -Coor) %>% 
   st_cast("MULTIPOLYGON")
 
+bruxelles_centroid <- dataset_complete %>%
+  select(NUTS, Name, Year, Centroid) %>% 
+  filter(NUTS == "BE10") %>%
+  st_geometry()
+
+dataset_centroids <- dataset_complete %>%
+  select(NUTS, Name, Year, Centroid)
+
+Dist_BRUX <- dataset_complete %>%
+  select(NUTS, Name, Year) %>% 
+  mutate(Dist_BRUX = as.numeric(st_distance(st_geometry(dataset_centroids), bruxelles_centroid[1]))) %>%
+  st_set_geometry(NULL)
+
+dataset_final <- dataset_complete %>% 
+  full_join(Dist_BRUX) %>% 
+  select(-geometry, everything(), geometry)
+
 #SAVING
-saveRDS(dataset_complete, "03_final-input/dataset_complete.rds")
+saveRDS(dataset_final, "03_final-input/dataset.rds")

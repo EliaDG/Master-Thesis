@@ -5,7 +5,7 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #LOADING DATA
-dataset <- readRDS("03_final-input/dataset_complete.rds")
+dataset <- readRDS("03_final-input/dataset.rds")
 
 data_2021 <- dataset %>% 
   filter(!NUTS %in% c("HR04", "HU10", "IE01", "IE02", "LT00", "UKI1" , "UKI2", "UKM2", "UKM3"),

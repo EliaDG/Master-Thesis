@@ -12,7 +12,7 @@ data_2021 <- dataset %>%
          Year == 2015) %>% 
   select(NUTS, Name, geometry)
 data_alt <- dataset %>% 
-  filter(!NUTS %in% c("HU11", "HU12", "IE04", "IE05", "IE06", "LT01", "LT02", "UKI1" , "UKI4", "UKI5" , "UKI6", "UKI7" , "UKI3", "UKM7", "UKM8", "UKM9"),
+  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "IE04", "IE05", "IE06", "LT01", "LT02", "UKI1" , "UKI4", "UKI5" , "UKI6", "UKI7" , "UKI3", "UKM7", "UKM8", "UKM9"),
          Year == 2015) %>% 
   select(NUTS, Name, geometry)
 
@@ -105,7 +105,7 @@ region_pairs <- list(
   c("BA00", "RS21"), # Bosnia and Herzegovina, Region Šumadije i Zapadne Srbije
   c("BA00", "RS12"), # Bosnia and Herzegovina, Autonomous Province of Vojvodina
   c("BA00", "HR03"), # Bosnia and Herzegovina, Jadranska Hrvatska
-  c("BA00", "HR02"), # Bosnia and Herzegovina, Panonska Hrvatska
+  c("BA00", "HR04"), # Bosnia and Herzegovina, Kontinetalna Hrvatska
   c("XK00", "MK00"), # Kosovo, Severna Makedonija
   c("XK00", "ME00"), # Kosovo, Crna Gora
   c("XK00", "RS21"), # Kosovo, Region Šumadije i Zapadne Srbije

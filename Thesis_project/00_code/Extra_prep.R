@@ -13,7 +13,7 @@ gva_nace <- read_excel("01_data-input/wiiw/gva_nace.xlsx", sheet = "Data_clean_e
 pop <- read_excel("01_data-input/wiiw/pop_lifexp.xlsx", sheet = "Data_clean", na = ".")
 wages <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
 
-pop_empl_unem_edu_MD <- read_excel("01_data-input/National/MD/pop_empl_unem_edu.xlsx", sheet = "Data_clean")
+pop_empl_unem_edu_MD <- read_excel("01_data-input/National/MD/pop_empl_unem_edu.xlsx", sheet = "Data_clean",  na = "..")
 emp_edu_XK <- read_excel("01_data-input/National/KS/EMP_EDU.xlsx", sheet = "Data_clean")
 unemp_edu_XK <- read_excel("01_data-input/National/KS/UNEMP_EDU.xlsx", sheet = "Data_clean")
 

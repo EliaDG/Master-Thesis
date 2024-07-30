@@ -26,4 +26,6 @@ p_load(tidyverse,
        dplyr,
        tidyr,
        eurostat,
-       spdep)
+       spdep,
+       patchwork,
+       gridExtra)

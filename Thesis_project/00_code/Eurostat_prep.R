@@ -14,16 +14,8 @@ primary_education <- read_excel("01_data-input/Eurostat/edat_lfse_04.xlsx", shee
 secondary_education <- read_excel("01_data-input/Eurostat/edat_lfse_04.xlsx", sheet = "Data3_clean", na = ":")
 tertiary_education <- read_excel("01_data-input/Eurostat/edat_lfse_04.xlsx", sheet = "Data4_clean", na = ":")
 
-employment_primary_edu <- read_excel("01_data-input/Eurostat/lfst_r_lfe2eedu.xlsx", sheet = "Data_clean", na = ":")
-employment_secondary_edu <- read_excel("01_data-input/Eurostat/lfst_r_lfe2eedu.xlsx", sheet = "Data1_clean", na = ":")
-employment_tertiary_edu <- read_excel("01_data-input/Eurostat/lfst_r_lfe2eedu.xlsx", sheet = "Data2_clean", na = ":")
-
-unempl_primary_edu <- read_excel("01_data-input/Eurostat/lfst_r_lfu3pers.xlsx", sheet = "Data1_clean", na = ":")
-unempl_secondary_edu <- read_excel("01_data-input/Eurostat/lfst_r_lfu3pers.xlsx", sheet = "Data2_clean", na = ":")
-unempl_tertiary_edu <- read_excel("01_data-input/Eurostat/lfst_r_lfu3pers.xlsx", sheet = "Data3_clean", na = ":")
-
 # Cleaning ----
-NEET <- activity_rate %>%
+NEET_ardeco <- activity_rate %>%
   select(`GEO (Codes)`, `GEO (Labels)`) %>%
   right_join(neet, by = c("GEO (Labels)" = "GEO (Labels)")) %>%
   pivot_longer(cols = -c("GEO (Codes)" , "GEO (Labels)"),
@@ -47,37 +39,21 @@ Actrt_ardeco <- activity_rate %>%
                values_to = "Activity_rate") %>% 
   mutate(Activity_rate = Activity_rate/100)
 
-Emp_edu_1 <- employment_primary_edu %>% 
-  pivot_longer(cols = -c("GEO (Codes)", "GEO (Labels)"),
-               names_to = "Year", 
-               values_to = "Empl_edu_1") %>% 
-  mutate(Empl_edu_1 = Empl_edu_1*1000)
-Emp_edu_2 <- employment_secondary_edu %>% 
-  pivot_longer(cols = -c("GEO (Codes)", "GEO (Labels)"),
-               names_to = "Year", 
-               values_to = "Empl_edu_2") %>% 
-  mutate(Empl_edu_2 = Empl_edu_2*1000)
-Emp_edu_3 <- employment_tertiary_edu %>% 
-  pivot_longer(cols = -c("GEO (Codes)", "GEO (Labels)"),
-               names_to = "Year", 
-               values_to = "Empl_edu_3") %>% 
-  mutate(Empl_edu_3 = Empl_edu_3*1000)
-
-Pop_edu_1 <- activity_rate %>%
+Pop_edu_1_ardeco <- activity_rate %>%
   select(`GEO (Codes)`, `GEO (Labels)`) %>%
   right_join(primary_education, by = c("GEO (Labels)" = "GEO (Labels)")) %>%
   pivot_longer(cols = -c("GEO (Codes)" , "GEO (Labels)"),
                names_to = "Year", 
                values_to = "Pop_edu_1") %>% 
   mutate(Pop_edu_1 = Pop_edu_1/100)
-Pop_edu_2 <- activity_rate %>%
+Pop_edu_2_ardeco <- activity_rate %>%
   select(`GEO (Codes)`, `GEO (Labels)`) %>%
   right_join(secondary_education, by = c("GEO (Labels)" = "GEO (Labels)")) %>%
   pivot_longer(cols = -c("GEO (Codes)" , "GEO (Labels)"),
                names_to = "Year", 
                values_to = "Pop_edu_2") %>% 
   mutate(Pop_edu_2 = Pop_edu_2/100)
-Pop_edu_3 <- activity_rate %>%
+Pop_edu_3_ardeco <- activity_rate %>%
   select(`GEO (Codes)`, `GEO (Labels)`) %>%
   right_join(tertiary_education, by = c("GEO (Labels)" = "GEO (Labels)")) %>%
   pivot_longer(cols = -c("GEO (Codes)" , "GEO (Labels)"),
@@ -85,38 +61,27 @@ Pop_edu_3 <- activity_rate %>%
                values_to = "Pop_edu_3") %>% 
   mutate(Pop_edu_3 = Pop_edu_3/100)
 
-Unemp_edu_1 <- unempl_primary_edu %>% 
-  pivot_longer(cols = -c("GEO (Codes)", "GEO (Labels)"),
-               names_to = "Year", 
-               values_to = "Unempl_edu_1") %>% 
-  mutate(Unempl_edu_1 = Unempl_edu_1*1000)
-Unemp_edu_2 <- unempl_secondary_edu %>% 
-  pivot_longer(cols = -c("GEO (Codes)", "GEO (Labels)"),
-               names_to = "Year", 
-               values_to = "Unempl_edu_2")  %>% 
-  mutate(Unempl_edu_2 = Unempl_edu_2*1000)
-Unemp_edu_3 <- unempl_tertiary_edu %>% 
-  pivot_longer(cols = -c("GEO (Codes)", "GEO (Labels)"),
-               names_to = "Year", 
-               values_to = "Unempl_edu_3")%>% 
-  mutate(Unempl_edu_3 = Unempl_edu_3*1000)
-
 # Additional data ----
-Fertility_RS <- read_excel("01_data-input/National/RS/fertility.xlsx", sheet = "Data_clean") %>% 
+Fertility_RS <- read_excel("01_data-input/National/RS/fertility.xlsx", sheet = "Data_clean")
+Life_exp_RS <- read_excel("01_data-input/National/RS/life_expectancy.xlsx", sheet = "Data_clean")
+Actrt_AL <- read_excel("01_data-input/wiiw/activity.xlsx", sheet = "Data_clean", na = ".")
+WDI_AL <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_AL", na = "..") 
+
+Fertility_RS <- Fertility_RS %>% 
   select(-2) %>% 
   rename(Fertility_rate = 3,
          `GEO (Codes)` = 1) %>% 
   mutate(Fertility_rate = as.numeric(Fertility_rate)) %>% 
   filter(Year %in% c(2000:2019))
 
-Life_exp_RS <- read_excel("01_data-input/National/RS/life_expectancy.xlsx", sheet = "Data_clean") %>% 
+Life_exp_RS <- Life_exp_RS %>% 
   select(-2) %>% 
   rename(Life_exp = 3,
          `GEO (Codes)` = 1) %>% 
   mutate(Life_exp = as.numeric(Life_exp)) %>% 
   filter(Year %in% c(2000:2019))
 
-Actrt_AL <- read_excel("01_data-input/wiiw/activity.xlsx", sheet = "Data_clean", na = ".") %>% 
+Actrt_AL <- Actrt_AL %>% 
   slice(1) %>% 
   select(-"Indicator", -"Unit") %>%
   rename("GEO (Codes)" = 1,
@@ -126,8 +91,6 @@ Actrt_AL <- read_excel("01_data-input/wiiw/activity.xlsx", sheet = "Data_clean",
                values_to = "Activity_rate") %>% 
   mutate(Activity_rate = Activity_rate/100)
 
-WDI_AL <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_AL", na = "..") 
-
 WDI_extra_AL <- WDI_AL %>%
   pivot_longer(cols = starts_with("20"),
                names_to = "Year", 
@@ -136,14 +99,8 @@ WDI_extra_AL <- WDI_AL %>%
   rename(`GEO (Codes)` = 1,
          `GEO (Labels)` = 2,
          NEET_share = 4,
-         Life_exp = 19,
-         Fertility_rate =20,
-         A__Unempl_edu_1_share = 6,
-         A__Unempl_edu_2_share = 7,
-         A__Unempl_edu_3_share = 5,
-         A__LF_edu_1_share = 9,
-         A__LF_edu_2_share = 8,
-         A__LF_edu_3_share = 10,
+         Life_exp = 13,
+         Fertility_rate = 14,
          ISCED_1 = `Educational attainment, at least completed primary, population 25+ years, total (%) (cumulative)`, #highest cumulative percentage
          ISCED_2 = `Educational attainment, at least completed lower secondary, population 25+, total (%) (cumulative)`,
          ISCED_3 = `Educational attainment, at least completed upper secondary, population 25+, total (%) (cumulative)`,
@@ -156,14 +113,8 @@ WDI_extra_AL <- WDI_AL %>%
   mutate(Pop_edu_3 = ISCED_5/100,
          Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
          Pop_edu_1 = (ISCED_2 - ISCED_3)/100,
-         NEET_share = NEET_share/100,
-         A__Unempl_edu_1_share = A__Unempl_edu_1_share/100,
-         A__Unempl_edu_2_share = A__Unempl_edu_2_share/100,
-         A__Unempl_edu_3_share = A__Unempl_edu_3_share/100,
-         A__LF_edu_1_share = A__LF_edu_1_share/100,
-         A__LF_edu_2_share = A__LF_edu_2_share/100,
-         A__LF_edu_3_share = A__LF_edu_3_share/100) %>%
-  select(1:10, 19:23)
+         NEET_share = NEET_share/100) %>%
+  select(1:4, 13:17)
 
 # Merging ----
 Fertility <- Fertility_ardeco %>%
@@ -185,10 +136,8 @@ Life_exp <- Life_exp_ardeco %>%
 Actrt <- bind_rows(Actrt_AL, Actrt_ardeco) %>% 
   arrange("GEO (Codes)", "Year")
 
-data <- list(Actrt, NEET, Life_exp, Fertility,
-             Emp_edu_1, Emp_edu_2, Emp_edu_3,
-             Unemp_edu_1, Unemp_edu_2, Unemp_edu_3,
-             Pop_edu_1, Pop_edu_2, Pop_edu_3,
+data <- list(Actrt, NEET_ardeco, Life_exp, Fertility,
+             Pop_edu_1_ardeco, Pop_edu_2_ardeco, Pop_edu_3_ardeco,
              WDI_extra_AL)
 
 eurostat <- Reduce(function(x, y) full_join(x, y, by = c("GEO (Codes)", "GEO (Labels)", "Year" )), data) %>%
@@ -207,41 +156,3 @@ eurostat <- Reduce(function(x, y) full_join(x, y, by = c("GEO (Codes)", "GEO (La
 
 #SAVING
 write.csv(eurostat, file = here("02_intermediary-input", "eurostat_dataset.csv"), row.names = FALSE)
-
-# Appendix ----
-# WDI_Edu_AL <- WDI_AL %>% 
-#   pivot_longer(cols = -c(NUTS, `Country Name`, `Series Name`),
-#                names_to = "Year",
-#                values_to = "Values") %>%
-#   pivot_wider(names_from = `Series Name`,
-#               values_from = Values) %>% 
-#   rename(Name = 2,
-#          NEET_share = 4,
-#          A__Unemp_edu_1 = 6,
-#          A__Unempl_edu_2 = 7,
-#          A__Unempl_edu_3 = 5,
-#          LF_edu_1_share = 9,
-#          LF_edu_2_share = 8,
-#          LF_edu_3_share = 10,
-#          Life_exp = 19,
-#          Fertility_rate = 20) %>% 
-#   filter(Year %in% 2009:2019) %>% 
-#   select(1:3, 11:18)
-
-# vers_1 <- WDI_Edu_AL %>%
-#   rename(ISCED_1 = `Educational attainment, at least completed primary, population 25+ years, total (%) (cumulative)`, #highest cumulative percentage
-#          ISCED_2 = `Educational attainment, at least completed lower secondary, population 25+, total (%) (cumulative)`,
-#          ISCED_3 = `Educational attainment, at least completed upper secondary, population 25+, total (%) (cumulative)`,
-#          ISCED_4 = `Educational attainment, at least completed post-secondary, population 25+, total (%) (cumulative)`,
-#          ISCED_5 = `Educational attainment, at least completed short-cycle tertiary, population 25+, total (%) (cumulative)`,
-#          ISCED_6 = `Educational attainment, at least Bachelor's or equivalent, population 25+, total (%) (cumulative)`,
-#          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
-#          ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`) %>%  #lowest cumulative percentage
-#   select(NUTS, Name, Year,
-#          ISCED_8, ISCED_7, ISCED_6, ISCED_5,
-#          ISCED_4, ISCED_3, ISCED_2, ISCED_1) %>%  #reorder
-#   mutate(ISCED_5_8 = ISCED_5,
-#          ISCED_3_4 = ISCED_3 - ISCED_5_8, #here ISCED_4 and ISCED_5 are the same
-#          ISCED_0_2 = ISCED_2 - ISCED_3_4
-#   ) %>%
-#   select(1:3, ISCED_0_2, ISCED_3_4, ISCED_5_8)

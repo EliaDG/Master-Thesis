@@ -18,7 +18,7 @@ RUWCDW_Wage <- read_excel("01_data-input/Ardeco/RUWCDW_Wage.xlsx", sheet = "Data
 SNETD_Employment <- read_excel("01_data-input/Ardeco/SNETD_Employment.xlsx", sheet = "Data_clean")
 SNMTN_Migration <- read_excel("01_data-input/Ardeco/SNMTN_Migration.xlsx", sheet = "Data_clean")
 SNPTD_Population <- read_excel("01_data-input/Ardeco/SNPTD_Population.xlsx", sheet = "Data_clean")
-SUVGD_GDP <- read_excel("01_data-input/Ardeco/SUVGD_GDP(current).xlsx", sheet = "Data_clean")
+SUVGD_GDP <- read_excel("01_data-input/Ardeco/SUVGD_GDP(constant).xlsx", sheet = "Data_clean")
 SUVGDE_Productivity <- read_excel("01_data-input/Ardeco/SUVGDE_Productivity.xlsx", sheet = "Data_clean")
 SUVGE_GVA <- read_excel("01_data-input/Ardeco/SUVGE_GVA(basic).xlsx", sheet = "Data_clean")
 SUVGZ <- read_csv("01_data-input/Ardeco/SUVGZ.csv")
@@ -62,7 +62,10 @@ Migr <- SNMTN_Migration %>%
 Pop <- SNPTD_Population %>%
   pivot_longer(cols = -c("NUTS", "Name"), 
                names_to = "Year", 
-               values_to = "Population_abs") # People
+               values_to = "Population_abs") %>%  # People
+  group_by(Name, NUTS) %>%
+  mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
+  ungroup()
 
 GDP_ardeco <- SUVGD_GDP %>%
   select(-"Unit") %>% 
@@ -109,17 +112,24 @@ Emp_Nace_Ardeco <- SNETZ %>%
   mutate(`EMP_NACE_L-M-N` = EMP_NACE_L + `EMP_NACE_M-N`)
 
 # Additional sources ----
-Emp_Nace_TR <- read_excel("01_data-input/Eurostat/lfst_r_lfe2en2_Turkey.xlsx", sheet = "Data_clean", na = ":") %>%
+Emp_Nace_TR <- read_excel("01_data-input/Eurostat/lfst_r_lfe2en2_Turkey.xlsx", sheet = "Data_clean", na = ":")
+Emp_Nace_ME <- read_excel("01_data-input/National/ME/NACE_Employment_ME.xlsx", na = ":")
+Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".")
+Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".")
+Wage_AL <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
+GDP_AL <- read_excel("01_data-input/wiiw/gdp.xlsx", sheet = "Data_clean", na = ".")
+
+Emp_Nace_TR <- Emp_Nace_TR %>%
   mutate(across(where(is.double), ~ . * 1000),
          `EMP_NACE_L-M-N` = EMP_NACE_L + `EMP_NACE_M-N`) %>% 
   rename( NUTS = 1,
           Name = 2,
           Year = 3)
 
-Emp_Nace_ME <- read_excel("01_data-input/National/ME/NACE_Employment_ME.xlsx", na = ":") %>% 
+Emp_Nace_ME <- Emp_Nace_ME %>% 
   mutate(Year = as.character(Year))
 
-Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".") %>%
+Emp_Nace_AL <- Emp_Nace_AL %>%
   pivot_longer(cols = starts_with("20"), 
                names_to = "Year", 
                values_to = "Value") %>%
@@ -134,7 +144,7 @@ Emp_Nace <- rbind(Emp_Nace_Ardeco, Emp_Nace_TR, Emp_Nace_ME, Emp_Nace_AL) %>%
   arrange(NUTS, Year) %>% 
   select(-Name)
 
-Wage_AL <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".") %>% 
+Wage_AL <- Wage_AL %>% 
   slice(1,2) %>% 
   select(-3) %>% 
   pivot_longer(cols = -c("NUTS", "Name", "Unit"), 
@@ -144,7 +154,7 @@ Wage_AL <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na
               values_from = "Wage_abs",
               names_prefix = "Wage_")
 
-GDP_AL <- read_excel("01_data-input/wiiw/gdp.xlsx", sheet = "Data_clean", na = ".") %>% 
+GDP_AL <- GDP_AL %>% 
   slice(1,2) %>% 
   select(-c(3,5)) %>%
   rename(NUTS = 1,

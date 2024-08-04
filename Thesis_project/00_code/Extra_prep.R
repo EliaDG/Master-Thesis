@@ -12,10 +12,8 @@ gdp <- read_excel("01_data-input/wiiw/gdp.xlsx", sheet = "Data_clean", na = ".")
 gva_nace <- read_excel("01_data-input/wiiw/gva_nace.xlsx", sheet = "Data_clean_extra", na = ".")
 pop <- read_excel("01_data-input/wiiw/pop_lifexp.xlsx", sheet = "Data_clean", na = ".")
 wages <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
-
-pop_empl_unem_edu_MD <- read_excel("01_data-input/National/MD/pop_empl_unem_edu.xlsx", sheet = "Data_clean",  na = "..")
-emp_edu_XK <- read_excel("01_data-input/National/KS/EMP_EDU.xlsx", sheet = "Data_clean")
-unemp_edu_XK <- read_excel("01_data-input/National/KS/UNEMP_EDU.xlsx", sheet = "Data_clean")
+fexc <- read_excel("01_data-input/wiiw/fexc.xlsx", sheet = "Data_clean")
+pop_edu_MD <- read_excel("01_data-input/National/MD/mun010500.xlsx", sheet = "Data_clean",  na = "..")
 
 WDI <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_extra", na = "..")
 
@@ -65,17 +63,37 @@ GDP <- gdp %>%
   mutate(GDP_growth = (GDP_EUR - lag(GDP_EUR)) / lag(GDP_EUR)) %>% 
   ungroup()
 
-GVA_Nace <- gva_nace %>%
+exc_rate <- fexc %>% 
+  select(-"Unit") %>%
+  pivot_longer(cols = -c("NUTS", "Name"), 
+               names_to = "Year", 
+               values_to = "Exchange_rate") %>% 
+  arrange(NUTS, Name, Year)
+
+GVA <- gva_nace %>%
   select(-"Unit") %>%
   pivot_longer(cols = -c("NUTS", "Name", "Nace"), 
                names_to = "Year", 
                values_to = "GVA_Nace_abs") %>%
-  mutate(GVA_Nace_abs = GVA_Nace_abs*1000000) %>% # In Millions
+  mutate(GVA_Nace_abs = GVA_Nace_abs*1000000) %>%  # In Millions
+  arrange(NUTS, Name, Year)
+
+GVA_Nace <- GVA %>% 
+  left_join(exc_rate, by = c('NUTS', 'Name', 'Year')) %>%
+  arrange(NUTS, Name, Year) %>% 
+  mutate(GVA_Euro = GVA_Nace_abs / Exchange_rate) %>% 
+  select(NUTS, Name, Year, everything()) %>% 
+  select(-c(GVA_Nace_abs, Exchange_rate)) %>% 
   pivot_wider(names_from = Nace,
-              values_from = GVA_Nace_abs,
-              names_prefix = "GVA_NACE_") %>% 
-  rename(GVA_NCU = GVA_NACE_Total) %>% 
+              values_from = GVA_Euro,
+              names_prefix = "GVA_NACE_") %>%
+  rename(GVA_EUR = GVA_NACE_Total) %>%
   mutate(`GVA_NACE_L-M-N` = `GVA_NACE_L` + `GVA_NACE_M-N`)
+
+GVA_NCU <- GVA %>% 
+  filter(Nace == "Total") %>%
+  rename(GVA_NCU = GVA_Nace_abs) %>% 
+  select(-Nace)
 
 Population <- pop %>% 
   rename(NUTS = 1,
@@ -84,7 +102,11 @@ Population <- pop %>%
   pivot_longer(cols = -c("NUTS", "Name"), 
                names_to = "Year", 
                values_to = "Population_abs")%>%
-  mutate(Population_abs = Population_abs*1000)
+  mutate(Population_abs = Population_abs*1000) %>% 
+  group_by(Name, NUTS) %>%
+  mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
+  ungroup()
+
 
 Wages <- wages %>%
   slice(3:8) %>% 
@@ -96,64 +118,18 @@ Wages <- wages %>%
               values_from = Wage_abs,
               names_prefix = "Wage_")
 
-Edu_MD <- pop_empl_unem_edu_MD %>%
-  pivot_longer(cols = starts_with("20"), 
+Edu_MD <- pop_edu_MD %>% 
+  pivot_longer(cols = -c("NUTS", "Name", "Level"), 
                names_to = "Year", 
-               values_to = "Population_by_status") %>%
-  mutate(Population_by_status = Population_by_status * 1000) %>% 
-  pivot_wider(names_from = c(Status, Level),
-              values_from = Population_by_status,
-              names_glue = "{Level}_{Status}") %>% 
-  select(-c(7:12,16:18)) %>% 
-  rename(Pop_edu_3 = 4,
-         Empl_edu_3 = 5,
-         Unempl_edu_3 = 6,
-         Pop_edu_2 = 7,
-         Empl_edu_2 = 8,
-         Unempl_edu_2 = 9,
-         Pop_edu_1 = 10,
-         Empl_edu_1 = 11,
-         Unempl_edu_1 = 12)
-
-Emp_edu_XK <- emp_edu_XK %>%
-  select(-4) %>%
-  pivot_longer(cols = starts_with("20"), 
-               names_to = "Year", 
-               values_to = "Empl_edu") %>%
-  mutate(Empl_edu = Empl_edu*1000) %>% 
+               values_to = "Pop_edu") %>%
+  mutate(Pop_edu = Pop_edu * 1000) %>% 
   pivot_wider(names_from = Level,
-              values_from = Empl_edu,
-              names_prefix = "Empl_") %>% 
-  mutate(Empl_edu_1 = Empl_Primary + `Empl_No formal education`,
-         Empl_edu_2 = `Empl_Secondary education, gymnasium` + `Empl_Secondary education, vocational`,
-         Empl_edu_3 = Empl_Tertiary) %>% 
-  select(-c(4:9))
-
-Unemp_edu_XK <- unemp_edu_XK %>%
-  select(-4) %>%
-  rename(Level = 3) %>% 
-  pivot_longer(cols = starts_with("20"), 
-               names_to = "Year", 
-               values_to = "Unempl_edu") %>%
-  mutate(Unempl_edu = Unempl_edu*1000) %>% 
-  pivot_wider(names_from = Level,
-              values_from = Unempl_edu,
-              names_prefix = "Unempl_") %>%
-  arrange(Year) %>% 
-  mutate(Unempl_edu_1 = Unempl_Primary + `Unempl_No formal education`,
-         Unempl_edu_2 = `Unempl_Secondary education, gymnasium` + `Unempl_Secondary education, vocational`,
-         Unempl_edu_3 = Unempl_Tertiary) %>% 
-  select(-c(4:9))
-
-years <- 2000:2011
-all_years <- expand.grid(
-  NUTS = "XK00",
-  Name = "Kosovo",
-  Year = as.character(years)
-)
-LFS_XK <- merge(Emp_edu_XK, Unemp_edu_XK, by = c("NUTS", "Name", "Year")) %>% 
-  full_join(all_years, by = c("NUTS", "Name", "Year")) %>% 
-  arrange(Year)
+              values_from = Pop_edu,
+              names_prefix = "Pop_edu_") %>% 
+  mutate(Pop_edu_1 = Pop_edu_Gymnasium + `Pop_edu_Primary or no education`,
+         Pop_edu_2 = `Pop_edu_Secondary school` + `Pop_edu_Secondary professional` + `Pop_edu_Secondary specialized`,
+         Pop_edu_3 = Pop_edu_Higher) %>% 
+  select(1:3, 11:13)
 
 WDI_data <- WDI %>% 
   pivot_longer(cols = starts_with("20"),
@@ -164,16 +140,13 @@ WDI_data <- WDI %>%
   rename(Name = 2,
          Labor_force_abs = 4,
          NEET_share = 5,
-         A__Unempl_edu_3_share = 6,
-         A__Unempl_edu_2_share = 8,
-         A__Unempl_edu_1_share = 7,
-         Unempl_rate = 9,
-         Migration_abs = 11,
-         A__LF_edu_2_share = 12,
-         A__LF_edu_1_share = 13,
-         A__LF_edu_3_share = 14,
-         GFCF_share = 15,
-         GFCF_NCU = 16,
+         Unempl_rate = 6,
+         Migration_abs = 7,
+         LF_edu_2_share = 8,
+         LF_edu_1_share = 9,
+         LF_edu_3_share = 10,
+         GFCF_share = 11,
+         GFCF_NCU = 12,
          ISCED_1 = `Educational attainment, at least completed primary, population 25+ years, total (%) (cumulative)`, #highest cumulative percentage
          ISCED_2 = `Educational attainment, at least completed lower secondary, population 25+, total (%) (cumulative)`,
          ISCED_3 = `Educational attainment, at least completed upper secondary, population 25+, total (%) (cumulative)`,
@@ -182,28 +155,18 @@ WDI_data <- WDI %>%
          ISCED_6 = `Educational attainment, at least Bachelor's or equivalent, population 25+, total (%) (cumulative)`,
          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
          ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`,
-         Life_exp = 25,
-         Fertility_rate = 26) %>% 
+         Life_exp = 21,
+         Fertility_rate = 22) %>% 
   filter(Year %in% 2009:2019) %>% 
   mutate(Pop_edu_3 = ISCED_5/100,
          Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
          Pop_edu_1 = (ISCED_1 - ISCED_3)/100,
          NEET_share = NEET_share/100,
-         GFCF_share = GFCF_share/100,
-         A__Unempl_edu_1_share = A__Unempl_edu_1_share/100,
-         A__Unempl_edu_2_share = A__Unempl_edu_2_share/100,
-         A__Unempl_edu_3_share = A__Unempl_edu_3_share/100,
-         A__LF_edu_1_share = A__LF_edu_1_share/100,
-         A__LF_edu_2_share = A__LF_edu_2_share/100,
-         A__LF_edu_3_share = A__LF_edu_3_share/100) %>% 
-  select(-10, -Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"))
+         GFCF_share = GFCF_share/100) %>% 
+  select(-Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"))
 
 #Merging ----
-candidates <- full_join(Edu_MD, LFS_XK, by = c("NUTS", "Name", "Year",
-                                               "Empl_edu_1", "Empl_edu_2", "Empl_edu_3",
-                                               "Unempl_edu_1", "Unempl_edu_2", "Unempl_edu_3"))
-
-data_final <- list(candidates, Emp_Nace, GVA_Nace, GDP,
+data_final <- list(Edu_MD, Emp_Nace, GVA_Nace, GVA_NCU, GDP,
                    Actrt, Population, Wages, Unemployment,
                    WDI_data)
 
@@ -221,42 +184,3 @@ candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)
 
 #SAVING
 write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)
-
-#Appendix ----
-# WDI_BA_Edu <- WDI %>%
-#   pivot_longer(cols = starts_with("20"),
-#                names_to = "Year",
-#                values_to = "Values") %>%
-#   pivot_wider(names_from = `Series Name`,
-#               values_from = Values) %>%
-#   rename(Name = 2,
-#          Labor_force.x = 4,
-#          NEET_share.x = 5,
-#          A__Unempl_edu_3 = 6,
-#          A__Unempl_edu_2 = 8,
-#          A__Unempl_edu_1 = 7,
-#          A__Unempl_rate = 9,
-#          Migration.x = 11,
-#          A__LF_edu_2_share = 12,
-#          A__LF_edu_1_share = 13,
-#          A__LF_edu_3_share = 14,
-#          GFCF_share.x = 15,
-#          GFCG_NCU_abs.x = 16,
-#          ISCED_1 = `Educational attainment, at least completed primary, population 25+ years, total (%) (cumulative)`, #highest cumulative percentage
-#          ISCED_2 = `Educational attainment, at least completed lower secondary, population 25+, total (%) (cumulative)`,
-#          ISCED_3 = `Educational attainment, at least completed upper secondary, population 25+, total (%) (cumulative)`,
-#          ISCED_4 = `Educational attainment, at least completed post-secondary, population 25+, total (%) (cumulative)`,
-#          ISCED_5 = `Educational attainment, at least completed short-cycle tertiary, population 25+, total (%) (cumulative)`,
-#          ISCED_6 = `Educational attainment, at least Bachelor's or equivalent, population 25+, total (%) (cumulative)`,
-#          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
-#          ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`,
-#          Life_exp.x = 25,
-#          Fertility_rate.x = 26) %>%
-#   filter(Year %in% 2009:2019) %>%
-#   select(-ends_with(".x"), -10) %>%
-#   select(NUTS, Name, Year,
-#          ISCED_8, ISCED_7, ISCED_6, ISCED_5,
-#          ISCED_4, ISCED_3, ISCED_2, ISCED_1) %>%
-#   mutate(Pop_edu_3 = ISCED_5,
-#          Pop_edu_2 = (ISCED_3 - ISCED_5), #here ISCED_4 and ISCED_5 are the same
-#          Pop_edu_1 = (ISCED_1 - ISCED_3))

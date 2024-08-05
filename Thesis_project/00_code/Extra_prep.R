@@ -126,9 +126,9 @@ Edu_MD <- pop_edu_MD %>%
   pivot_wider(names_from = Level,
               values_from = Pop_edu,
               names_prefix = "Pop_edu_") %>% 
-  mutate(Pop_edu_1 = Pop_edu_Gymnasium + `Pop_edu_Primary or no education`,
-         Pop_edu_2 = `Pop_edu_Secondary school` + `Pop_edu_Secondary professional` + `Pop_edu_Secondary specialized`,
-         Pop_edu_3 = Pop_edu_Higher) %>% 
+  mutate(Pop_edu_1 = (Pop_edu_Gymnasium + `Pop_edu_Primary or no education`)/Pop_edu_Total,
+         Pop_edu_2 = (`Pop_edu_Secondary school` + `Pop_edu_Secondary professional` + `Pop_edu_Secondary specialized`)/Pop_edu_Total,
+         Pop_edu_3 = Pop_edu_Higher/Pop_edu_Total) %>% 
   select(1:3, 11:13)
 
 WDI_data <- WDI %>% 
@@ -175,12 +175,16 @@ candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)
   arrange(NUTS, Year) %>% 
   mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
          Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
-         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y),
-         Pop_edu_1 = if_else(NUTS == "MD00", Pop_edu_1/Population_abs, Pop_edu_1),
-         Pop_edu_2 = if_else(NUTS == "MD00", Pop_edu_2/Population_abs, Pop_edu_2),
-         Pop_edu_3 = if_else(NUTS == "MD00", Pop_edu_3/Population_abs, Pop_edu_3)) %>%
+         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%
   select(-ends_with(".x"), -ends_with(".y")) %>% 
   rename(Employment_abs = EMP_NACE_Total)
 
 #SAVING
 write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)
+
+
+# Appendix
+Pop_edu_witten <- read_csv("01_data-input/Wittgenstein/Pop_edu.csv", trim_ws = FALSE, skip = 8)
+Pop_age_witten <- read_csv("01_data-input/Wittgenstein/Pop_age.csv", skip = 8)
+
+  

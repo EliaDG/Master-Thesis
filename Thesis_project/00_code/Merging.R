@@ -63,9 +63,9 @@ data_EXTRA <- extra %>%
          `GVA_O-Q` =`GVA_NACE_O-Q`/GVA_EUR,
          `GVA_R-U`= `GVA_NACE_R-U`/GVA_EUR,
          #For Kosovo proxy:
-         Pop_edu_1 = if_else(NUTS == "XK00", LF_edu_1_share, Pop_edu_1),
-         Pop_edu_2 = if_else(NUTS == "XK00", LF_edu_2_share, Pop_edu_2),
-         Pop_edu_3 = if_else(NUTS == "XK00", LF_edu_3_share, Pop_edu_3)) %>% 
+         Pop_edu_1 = if_else(NUTS == "XK00", LF_edu_1_share/100, Pop_edu_1),
+         Pop_edu_2 = if_else(NUTS == "XK00", LF_edu_2_share/100, Pop_edu_2),
+         Pop_edu_3 = if_else(NUTS == "XK00", LF_edu_3_share/100, Pop_edu_3)) %>% 
   select(1:4, 30:34, Wage_EUR, 38:73) %>% 
   select(-starts_with("LF_edu_"), -GFCF_NCU)
 setdiff(colnames(data_EXTRA), colnames(data_EU))

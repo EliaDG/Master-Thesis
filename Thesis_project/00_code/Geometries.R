@@ -141,7 +141,7 @@ dataset_complete <- dataset %>%
          Employment_density = Employment_abs/Area,
          Population_density = Population_abs/Area) %>%
   select(-geometry, Country, NUTS, Name, Subregion, Year, everything(), geometry) %>% 
-  select(-Area, -Population_abs, -GDP_EUR, -Employment_abs, -Coor) %>% 
+  select(-Area, -Population_abs, -GDP_EUR, -Employment_abs, -Labor_force_abs, -Coor) %>% 
   st_cast("MULTIPOLYGON")
 
 bruxelles_centroid <- dataset_complete %>%

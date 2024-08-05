@@ -18,7 +18,7 @@ RUWCDW_Wage <- read_excel("01_data-input/Ardeco/RUWCDW_Wage.xlsx", sheet = "Data
 SNETD_Employment <- read_excel("01_data-input/Ardeco/SNETD_Employment.xlsx", sheet = "Data_clean")
 SNMTN_Migration <- read_excel("01_data-input/Ardeco/SNMTN_Migration.xlsx", sheet = "Data_clean")
 SNPTD_Population <- read_excel("01_data-input/Ardeco/SNPTD_Population.xlsx", sheet = "Data_clean")
-SUVGD_GDP <- read_excel("01_data-input/Ardeco/SUVGD_GDP(constant).xlsx", sheet = "Data_clean")
+SOVGD_GDP <- read_excel("01_data-input/Ardeco/SOVGD_GDP(constant).xlsx", sheet = "Data_clean")
 SUVGDE_Productivity <- read_excel("01_data-input/Ardeco/SUVGDE_Productivity.xlsx", sheet = "Data_clean")
 SUVGE_GVA <- read_excel("01_data-input/Ardeco/SUVGE_GVA(basic).xlsx", sheet = "Data_clean")
 SUVGZ <- read_csv("01_data-input/Ardeco/SUVGZ.csv")
@@ -67,7 +67,7 @@ Pop <- SNPTD_Population %>%
   mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
   ungroup()
 
-GDP_ardeco <- SUVGD_GDP %>%
+GDP_ardeco <- SOVGD_GDP %>%
   select(-"Unit") %>% 
   pivot_longer(cols = -c("NUTS", "Name"), 
                names_to = "Year", 

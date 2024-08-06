@@ -14,7 +14,6 @@ data_EU <- full_join(ardeco, eurostat) %>%
   mutate(Labor_force_abs = Employment_abs + Unemployment_abs,
          Employment_rate = Employment_abs / Population_abs,
          Unemployment_rate = Unemployment_abs / Population_abs,
-         GDP_capita = GDP_EUR / Population_abs,
          Prodx_A = GVA_NACE_A / EMP_NACE_A,
          `Prodx_B-E` = `GVA_NACE_B-E` / `EMP_NACE_B-E`,
          Prodx_F = GVA_NACE_F / EMP_NACE_F,
@@ -41,7 +40,6 @@ data_EXTRA <- extra %>%
   mutate(Labor_force_abs = Employment_abs + Unemployment_abs,
          Employment_rate = Employment_abs / Population_abs,
          Unemployment_rate = Unemployment_abs / Population_abs,
-         GDP_capita = GDP_EUR / Population_abs,
          Prodx_A = GVA_NACE_A / EMP_NACE_A,
          `Prodx_B-E` = `GVA_NACE_B-E` / `EMP_NACE_B-E`,
          Prodx_F = GVA_NACE_F / EMP_NACE_F,
@@ -66,9 +64,10 @@ data_EXTRA <- extra %>%
          Pop_edu_1 = if_else(NUTS == "XK00", LF_edu_1_share/100, Pop_edu_1),
          Pop_edu_2 = if_else(NUTS == "XK00", LF_edu_2_share/100, Pop_edu_2),
          Pop_edu_3 = if_else(NUTS == "XK00", LF_edu_3_share/100, Pop_edu_3)) %>% 
-  select(1:4, 30:34, Wage_EUR, 38:73) %>% 
+  select(1:4, 30:33, Wage_EUR, 37:73) %>% 
   select(-starts_with("LF_edu_"), -GFCF_NCU)
 setdiff(colnames(data_EXTRA), colnames(data_EU))
+setdiff(colnames(data_EU), colnames(data_EXTRA))
 
 dataset <- full_join(data_EU, data_EXTRA) %>%
   arrange(NUTS, Year) %>% 

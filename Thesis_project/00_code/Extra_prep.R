@@ -58,10 +58,7 @@ GDP <- gdp %>%
   mutate(GDP_abs = GDP_abs*1000000) %>% 
   pivot_wider(names_from = Unit,
               values_from = GDP_abs,
-              names_prefix = "GDP_") %>%
-  group_by(Name, NUTS) %>%
-  mutate(GDP_growth = (GDP_EUR - lag(GDP_EUR)) / lag(GDP_EUR)) %>% 
-  ungroup()
+              names_prefix = "GDP_")
 
 exc_rate <- fexc %>% 
   select(-"Unit") %>%
@@ -170,9 +167,13 @@ data_final <- list(Edu_MD, Emp_Nace, GVA_Nace, GVA_NCU, GDP,
                    Actrt, Population, Wages, Unemployment,
                    WDI_data)
 
-candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)) %>% 
-  filter(Year %in% c(2009:2019)) %>% 
-  arrange(NUTS, Year) %>% 
+candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)) %>%
+  arrange(NUTS, Year) %>%
+  group_by(Name, NUTS) %>%
+  mutate(GDP_capita = GDP_EUR/Population_abs,
+         GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita)) %>%
+  ungroup() %>% 
+  filter(Year %in% c(2009:2019)) %>%
   mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
          Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
          Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%

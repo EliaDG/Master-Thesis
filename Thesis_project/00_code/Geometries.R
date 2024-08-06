@@ -154,12 +154,30 @@ dataset_centroids <- dataset_complete %>%
 
 Dist_BRUX <- dataset_complete %>%
   select(NUTS, Name, Year) %>% 
-  mutate(Dist_BRUX = as.numeric(st_distance(st_geometry(dataset_centroids), bruxelles_centroid[1]))) %>%
+  mutate(Dist_BRUX = as.numeric(st_distance(st_geometry(dataset_centroids), bruxelles_centroid[1])),
+         Dist_BRUX = Dist_BRUX/1000) %>%
   st_set_geometry(NULL)
 
 dataset_final <- dataset_complete %>% 
-  full_join(Dist_BRUX) %>% 
+  full_join(Dist_BRUX) %>%
+  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
+                      "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>%
+  mutate(Country = as.factor(Country),
+         Subregion = as.factor(Subregion),
+         Capital = as.factor(Capital),
+         Coastal = as.factor(Coastal),
+         Island = as.factor(Island),
+         Beneficiary = as.factor(Beneficiary),
+         EU_Member = as.factor(EU_Member),
+         across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p),
+         Migration_abs = scale(Migration_abs)) %>%
+  select(-Centroid) %>%
+  rename(Labor_Prodx = Labor_Productivity_abs,
+         Migration = Migration_abs) %>% 
+  select(NUTS, Name, Country, Subregion, Year, GDP_growth, Capital, Coastal, Island, Beneficiary, EU_Member, everything()) %>% 
   select(-geometry, everything(), geometry)
+
+summary(dataset_final)
 
 #SAVING
 saveRDS(dataset_final, "03_final-input/dataset.rds")

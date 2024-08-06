@@ -8,9 +8,7 @@ source("00_code/__functions.R")
 dataset <- readRDS("03_final-input/dataset.rds")
 
 data_final <- dataset %>% 
-  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
-                      "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20"),
-         Year == 2015) %>% 
+  filter(Year == 2015) %>% 
   select(NUTS, Name, geometry)
 
 # Spatial Matrix for 2021 version----

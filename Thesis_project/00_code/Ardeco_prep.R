@@ -185,7 +185,8 @@ ardeco <- ardeco_data %>%
   full_join(Emp_Nace, by = c("NUTS", "Year")) %>% # Second round of merging because of Name discrepancy
   arrange(NUTS, Year) %>%
   group_by(Name, NUTS) %>%
-  mutate(GDP_growth = (GDP_EUR - lag(GDP_EUR)) / lag(GDP_EUR)) %>%
+  mutate( GDP_capita = GDP_EUR/Population_abs,
+          GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita)) %>%
   filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019)) %>%
   ungroup()
 

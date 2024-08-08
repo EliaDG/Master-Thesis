@@ -66,6 +66,7 @@ Fertility_RS <- read_excel("01_data-input/National/RS/fertility.xlsx", sheet = "
 Life_exp_RS <- read_excel("01_data-input/National/RS/life_expectancy.xlsx", sheet = "Data_clean")
 Actrt_AL <- read_excel("01_data-input/wiiw/activity.xlsx", sheet = "Data_clean", na = ".")
 WDI_AL <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_AL", na = "..") 
+Pop_edu_AL <- read_csv("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU.csv", na = "..")
 
 Fertility_RS <- Fertility_RS %>% 
   select(-2) %>% 
@@ -110,11 +111,19 @@ WDI_extra_AL <- WDI_AL %>%
          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
          ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`) %>% 
   filter(Year %in% 2009:2019) %>% 
-  mutate(Pop_edu_3 = ISCED_5/100,
-         Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
-         Pop_edu_1 = (ISCED_2 - ISCED_3)/100,
+  mutate( #Pop_edu_3 = ISCED_5/100,
+  #        Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
+  #        Pop_edu_1 = (ISCED_2 - ISCED_3)/100,
          NEET_share = NEET_share/100) %>%
-  select(1:4, 13:17)
+  select(1:4, 13, 14)
+
+Pop_edu_AL <-  Pop_edu_AL %>% 
+  filter(NUTS == "AL00") %>% 
+  arrange(NUTS, Year) %>% 
+  mutate(Pop_edu_1 = (Basic+`Less than basic`)/Total,
+         Pop_edu_2 = Intermediate/Total,
+         Pop_edu_3 = Advanced/Total) %>% 
+  select(-c(Total, Basic, `Less than basic`, Intermediate, Advanced))
 
 # Merging ----
 Fertility <- Fertility_ardeco %>%
@@ -145,14 +154,20 @@ eurostat <- Reduce(function(x, y) full_join(x, y, by = c("GEO (Codes)", "GEO (La
          Name = 2) %>%
   mutate(NEET_share = coalesce(NEET_share.x, NEET_share.y),
          Life_exp = coalesce(Life_exp.x, Life_exp.y),
-         Fertility_rate = coalesce(Fertility_rate.x, Fertility_rate.y),
-         Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
-         Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
-         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%
+         Fertility_rate = coalesce(Fertility_rate.x, Fertility_rate.y)) %>% 
   arrange(NUTS, Year) %>% 
   filter(!NUTS %in% c("AL01", "AL02", "AL03", "BA"),
          Year %in% 2009:2019) %>% 
-  select(-ends_with(".x"), -ends_with(".y")) # 3465 observations!
+  select(-ends_with(".x"), -ends_with(".y"))
+
+eurostat_complete <- eurostat %>%
+  mutate(Year = as.double(Year)) %>%
+  full_join(Pop_edu_AL, by = c("NUTS", "Name", "Year")) %>%
+  arrange(NUTS, Year) %>% 
+  mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
+         Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
+         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>% 
+  select(-ends_with(".x"), -ends_with(".y"))
 
 #SAVING
 write.csv(eurostat, file = here("02_intermediary-input", "eurostat_dataset.csv"), row.names = FALSE)

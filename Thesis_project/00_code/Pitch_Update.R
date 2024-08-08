@@ -14,8 +14,7 @@ ex2 <- dataset %>%
   filter(Subregion != "EU Candidates")
 length(unique(ex1$NUTS)); length(unique(ex2$NUTS))
 core <- dataset %>% 
-  select(-c(Country, Centroid, Lon, Lat, Dist_BRUX, Subregion, Capital, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
-  #filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI1", "UKI3", "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>% 
+  select(-c(Country, Lon, Lat, Dist_BRUX, Subregion, Capital, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
   st_set_geometry(NULL)
 
 total_observations <- nrow(core) * ncol(core)

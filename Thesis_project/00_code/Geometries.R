@@ -170,7 +170,7 @@ dataset_final <- dataset_complete %>%
          Beneficiary = as.factor(Beneficiary),
          EU_Member = as.factor(EU_Member),
          across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p),
-         Migration_abs = scale(Migration_abs)) %>%
+         Migration_abs = as.numeric(scale(Migration_abs))) %>%
   select(-Centroid) %>%
   rename(Labor_Prodx = Labor_Productivity_abs,
          Migration = Migration_abs) %>% 

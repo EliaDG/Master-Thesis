@@ -13,9 +13,12 @@ gva_nace <- read_excel("01_data-input/wiiw/gva_nace.xlsx", sheet = "Data_clean_e
 pop <- read_excel("01_data-input/wiiw/pop_lifexp.xlsx", sheet = "Data_clean", na = ".")
 wages <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
 fexc <- read_excel("01_data-input/wiiw/fexc.xlsx", sheet = "Data_clean")
-pop_edu_MD <- read_excel("01_data-input/National/MD/mun010500.xlsx", sheet = "Data_clean",  na = "..")
+
+#pop_edu_MD <- read_excel("01_data-input/National/MD/mun010500.xlsx", sheet = "Data_clean",  na = "..")
 
 WDI <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_extra", na = "..")
+
+Pop_edu <- read_csv("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU.csv", na = "..")
 
 #CLEANING
 Actrt <- activity_rate %>% 
@@ -115,18 +118,18 @@ Wages <- wages %>%
               values_from = Wage_abs,
               names_prefix = "Wage_")
 
-Edu_MD <- pop_edu_MD %>% 
-  pivot_longer(cols = -c("NUTS", "Name", "Level"), 
-               names_to = "Year", 
-               values_to = "Pop_edu") %>%
-  mutate(Pop_edu = Pop_edu * 1000) %>% 
-  pivot_wider(names_from = Level,
-              values_from = Pop_edu,
-              names_prefix = "Pop_edu_") %>% 
-  mutate(Pop_edu_1 = (Pop_edu_Gymnasium + `Pop_edu_Primary or no education`)/Pop_edu_Total,
-         Pop_edu_2 = (`Pop_edu_Secondary school` + `Pop_edu_Secondary professional` + `Pop_edu_Secondary specialized`)/Pop_edu_Total,
-         Pop_edu_3 = Pop_edu_Higher/Pop_edu_Total) %>% 
-  select(1:3, 11:13)
+# Edu_MD <- pop_edu_MD %>% 
+#   pivot_longer(cols = -c("NUTS", "Name", "Level"), 
+#                names_to = "Year", 
+#                values_to = "Pop_edu") %>%
+#   mutate(Pop_edu = Pop_edu * 1000) %>% 
+#   pivot_wider(names_from = Level,
+#               values_from = Pop_edu,
+#               names_prefix = "Pop_edu_") %>% 
+#   mutate(Pop_edu_1 = (Pop_edu_Gymnasium + `Pop_edu_Primary or no education`)/Pop_edu_Total,
+#          Pop_edu_2 = (`Pop_edu_Secondary school` + `Pop_edu_Secondary professional` + `Pop_edu_Secondary specialized`)/Pop_edu_Total,
+#          Pop_edu_3 = Pop_edu_Higher/Pop_edu_Total) %>% 
+#   select(1:3, 11:13)
 
 WDI_data <- WDI %>% 
   pivot_longer(cols = starts_with("20"),
@@ -155,15 +158,15 @@ WDI_data <- WDI %>%
          Life_exp = 21,
          Fertility_rate = 22) %>% 
   filter(Year %in% 2009:2019) %>% 
-  mutate(Pop_edu_3 = ISCED_5/100,
-         Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
-         Pop_edu_1 = (ISCED_1 - ISCED_3)/100,
+  mutate(#Pop_edu_3 = ISCED_5/100,
+         #Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
+         #Pop_edu_1 = (ISCED_1 - ISCED_3)/100,
          NEET_share = NEET_share/100,
          GFCF_share = GFCF_share/100) %>% 
   select(-Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"))
 
 #Merging ----
-data_final <- list(Edu_MD, Emp_Nace, GVA_Nace, GVA_NCU, GDP,
+data_final <- list(Emp_Nace, GVA_Nace, GVA_NCU, GDP, #Edu_MD,
                    Actrt, Population, Wages, Unemployment,
                    WDI_data)
 
@@ -174,18 +177,23 @@ candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)
          GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita)) %>%
   ungroup() %>% 
   filter(Year %in% c(2009:2019)) %>%
-  mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
-         Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
-         Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%
-  select(-ends_with(".x"), -ends_with(".y")) %>% 
+  # mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
+  #        Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
+  #        Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%
+  # select(-ends_with(".x"), -ends_with(".y")) %>% 
   rename(Employment_abs = EMP_NACE_Total)
 
+Pop_edu_levels <-  Pop_edu %>% 
+  filter(!NUTS == "AL00") %>% 
+  arrange(NUTS, Year) %>% 
+  mutate(Pop_edu_1 = (Basic+`Less than basic`)/Total,
+         Pop_edu_2 = Intermediate/Total,
+         Pop_edu_3 = Advanced/Total) %>% 
+  select(-c(Total, Basic, `Less than basic`, Intermediate, Advanced))
+
+candidates <- candidates_final %>%
+  mutate(Year = as.double(Year)) %>% 
+  full_join(Pop_edu_levels, by = c("NUTS", "Name", "Year"))
+
 #SAVING
-write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)
-
-
-# Appendix
-Pop_edu_witten <- read_csv("01_data-input/Wittgenstein/Pop_edu.csv", trim_ws = FALSE, skip = 8)
-Pop_age_witten <- read_csv("01_data-input/Wittgenstein/Pop_age.csv", skip = 8)
-
-  
+write.csv(candidates, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)

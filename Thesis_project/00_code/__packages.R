@@ -30,7 +30,5 @@ p_load(tidyverse,
        patchwork,
        gridExtra,
        BMS,
-       zoo,
        mice,
-       VIM,
-       missForest)
+       Amelia)

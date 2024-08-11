@@ -168,16 +168,10 @@ dataset_final <- dataset_complete %>%
          Coastal = as.factor(Coastal),
          Island = as.factor(Island),
          Beneficiary = as.factor(Beneficiary),
-         EU_Member = as.factor(EU_Member),
-         across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p),
-         Migration_abs = as.numeric(scale(Migration_abs))) %>%
+         EU_Member = as.factor(EU_Member)) %>%
   select(-Centroid) %>%
-  rename(Labor_Prodx = Labor_Productivity_abs,
-         Migration = Migration_abs) %>% 
   select(NUTS, Name, Country, Subregion, Year, GDP_growth, Capital, Coastal, Island, Beneficiary, EU_Member, everything()) %>% 
   select(-geometry, everything(), geometry)
-
-summary(dataset_final)
 
 #SAVING
 saveRDS(dataset_final, "03_final-input/dataset.rds")

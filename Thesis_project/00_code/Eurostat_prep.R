@@ -170,4 +170,4 @@ eurostat_complete <- eurostat %>%
   select(-ends_with(".x"), -ends_with(".y"))
 
 #SAVING
-write.csv(eurostat, file = here("02_intermediary-input", "eurostat_dataset.csv"), row.names = FALSE)
+write.csv(eurostat_complete, file = here("02_intermediary-input", "eurostat_dataset.csv"), row.names = FALSE)

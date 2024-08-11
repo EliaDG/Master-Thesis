@@ -74,7 +74,7 @@ filtered_data <- dataset %>%
   filter(Subregion == "EU Candidates",
          !Country == "Turkey")
 
-ggplot(filtered_data, aes(x = Year, y = Pop_edu_3, color = Country, group = NUTS)) +
+ggplot(filtered_data, aes(x = Year, y = Pop_edu_1, color = Country, group = NUTS)) +
   geom_line(linewidth = 1) +
   labs(x = "Year",
        y = "Pop_edu_3",
@@ -131,71 +131,3 @@ Pop_3 <- ggplot(World) +
   scale_fill_viridis_c(option = "viridis", na.value = "grey50", name = "Pop_edu_3") +
   coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
 grid.arrange(Pop_1, Pop_2, Pop_3, nrow = 1)
-
-# Employment by educational attainment
-ggplot(filtered_data, aes(x = Year, y = Emp_edu_1_rate, color = Country, group = NUTS)) +
-  geom_line(linewidth = 1) +
-  labs(x = "Year",
-       y = "Employment_basic_edu",
-       color = "Country:") +
-  scale_size_manual(values = c(1, 2), guide = "none") + 
-  theme_minimal() +
-  scale_x_continuous(breaks = seq(min(filtered_data$Year), max(filtered_data$Year), by = 1))
-
-ggplot(filtered_data, aes(x = Year, y = Emp_edu_2_rate, color = Country, group = NUTS)) +
-  geom_line(linewidth = 1) +
-  labs(x = "Year",
-       y = "Employment_intermediary_edu",
-       color = "Country:") +
-  scale_size_manual(values = c(1, 2), guide = "none") + 
-  theme_minimal() +
-  scale_x_continuous(breaks = seq(min(filtered_data$Year), max(filtered_data$Year), by = 1))
-
-ggplot(filtered_data, aes(x = Year, y = Emp_edu_3_rate, color = Country, group = NUTS)) +
-  geom_line(linewidth = 1) +
-  labs(x = "Year",
-       y = "Employment_advanced_edu",
-       color = "Country:") +
-  scale_size_manual(values = c(1, 2), guide = "none") + 
-  theme_minimal() +
-  scale_x_continuous(breaks = seq(min(filtered_data$Year), max(filtered_data$Year), by = 1))
-
-Emp_1 <- ggplot(World) +
-  geom_sf(color = "black") +
-  geom_sf(data = data_2018, aes(fill = Emp_edu_1_rate), color = NA) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.line = element_blank()
-  ) +
-  scale_fill_viridis_c(option = "viridis", na.value = "grey50", name = "Emp_edu_1") +
-  coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
-
-Emp_2 <- ggplot(World) +
-  geom_sf(color = "black") +
-  geom_sf(data = data_2018, aes(fill = Emp_edu_2_rate), color = NA) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.line = element_blank()
-  ) +
-  scale_fill_viridis_c(option = "viridis", na.value = "grey50", name = "Emp_edu_2") +
-  coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
-
-Emp_3 <- ggplot(World) +
-  geom_sf(color = "black") +
-  geom_sf(data = data_2018, aes(fill = Emp_edu_3_rate), color = NA) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.line = element_blank()
-  ) +
-  scale_fill_viridis_c(option = "viridis", na.value = "grey50", name = "Emp_edu_3") +
-  coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
-grid.arrange(Emp_1, Emp_2, Emp_3, nrow = 1)

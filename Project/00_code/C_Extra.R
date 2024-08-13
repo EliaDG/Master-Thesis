@@ -14,7 +14,7 @@ pop <- read_excel("01_data-input/wiiw/pop_lifexp.xlsx", sheet = "Data_clean", na
 wages <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
 fexc <- read_excel("01_data-input/wiiw/fexc.xlsx", sheet = "Data_clean")
 
-#pop_edu_MD <- read_excel("01_data-input/National/MD/mun010500.xlsx", sheet = "Data_clean",  na = "..")
+pop_BA <- read_excel("01_data-input/World Bank/Pop_BiH.xlsx", sheet = "Data_clean",  na = "..")
 
 WDI <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_extra", na = "..")
 
@@ -95,7 +95,8 @@ GVA_NCU <- GVA %>%
   rename(GVA_NCU = GVA_Nace_abs) %>% 
   select(-Nace)
 
-Population <- pop %>% 
+Population_others <- pop %>%
+  filter(!Country == "Bosnia and Herzegovina") %>% 
   rename(NUTS = 1,
          Name = 2) %>% 
   select(-c(3,4)) %>%
@@ -107,6 +108,14 @@ Population <- pop %>%
   mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
   ungroup()
 
+Population_BA <- pop_BA %>% 
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Population_abs") %>% 
+  mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs))
+
+Population <- rbind(Population_BA, Population_others) %>% 
+  arrange(NUTS, Year)
 
 Wages <- wages %>%
   slice(3:8) %>% 

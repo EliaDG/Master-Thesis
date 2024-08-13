@@ -141,7 +141,7 @@ dataset_complete <- dataset %>%
          Employment_density = Employment_abs/Area,
          Population_density = Population_abs/Area) %>%
   select(-geometry, Country, NUTS, Name, Subregion, Year, everything(), geometry) %>% 
-  select(-Area, -Population_abs, -GDP_EUR, -Employment_abs, -Labor_force_abs, -Coor) %>% 
+  select(-c(Area, Population_abs, GDP_EUR, Employment_abs, Coor)) %>% 
   st_cast("MULTIPOLYGON")
 
 bruxelles_centroid <- dataset_complete %>%
@@ -169,9 +169,9 @@ dataset_final <- dataset_complete %>%
          Island = as.factor(Island),
          Beneficiary = as.factor(Beneficiary),
          EU_Member = as.factor(EU_Member)) %>%
-  select(-Centroid) %>%
   select(NUTS, Name, Country, Subregion, Year, GDP_growth, Capital, Coastal, Island, Beneficiary, EU_Member, everything()) %>% 
-  select(-geometry, everything(), geometry)
+  select(-geometry, everything(), geometry) %>% 
+  select(-c(Centroid, Lon, Lat))
 
 #SAVING
 saveRDS(dataset_final, "03_final-input/dataset.rds")

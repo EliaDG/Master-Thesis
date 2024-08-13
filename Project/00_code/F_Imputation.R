@@ -11,13 +11,13 @@ glimpse(dataset)
 summary(dataset)
 
 #Transformation --------------
-summary(dataset$Migration_abs)
-hist(dataset$Migration_abs,
-     main = "Histogram of Your Variable", 
-     xlab = "Your Variable", 
-     ylab = "Frequency", 
-     col = "lightblue", 
-     border = "black")
+# summary(dataset$Migration_abs)
+# hist(dataset$Migration_abs,
+#      main = "Histogram of Your Variable", 
+#      xlab = "Your Variable", 
+#      ylab = "Frequency", 
+#      col = "lightblue", 
+#      border = "black")
 
 geom <- dataset %>% 
   select(NUTS, Year, geometry)
@@ -55,7 +55,7 @@ predictormatrix<-quickpred(data,
                                        "Prodx_O.Q", "Prodx_R.U", "inv_rate", "GFCF_share", 
                                        "GVA_A", "GVA_B.E", "GVA_F", "GVA_G.I", 
                                        "GVA_J", "GVA_K", "GVA_L.M.N", "GVA_O.Q", 
-                                       "GVA_R.U", "Lon", "Lat", "Output_density", 
+                                       "GVA_R.U", "Output_density", 
                                        "Employment_density", "Population_density", "Dist_BRUX","Migration"),
                            exclude = c("NUTS", "Name", "Country", "Subregion","Year",
                                         "Capital", "Coastal", "Island", "Beneficiary", "EU_Member"),

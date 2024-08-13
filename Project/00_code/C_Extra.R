@@ -8,13 +8,9 @@ source("00_code/__functions.R")
 activity_rate <- read_excel("01_data-input/wiiw/activity.xlsx", sheet = "Data_clean", na = ".")
 emp_nace <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_extra", na = ".")
 unemp <- read_excel("01_data-input/wiiw/unemp.xlsx", sheet = "Data_clean", na = ".")
-gdp <- read_excel("01_data-input/wiiw/gdp.xlsx", sheet = "Data_clean", na = ".")
 gva_nace <- read_excel("01_data-input/wiiw/gva_nace.xlsx", sheet = "Data_clean_extra", na = ".")
-pop <- read_excel("01_data-input/wiiw/pop_lifexp.xlsx", sheet = "Data_clean", na = ".")
 wages <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
 fexc <- read_excel("01_data-input/wiiw/fexc.xlsx", sheet = "Data_clean")
-
-pop_BA <- read_excel("01_data-input/World Bank/Pop_BiH.xlsx", sheet = "Data_clean",  na = "..")
 
 WDI <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_extra", na = "..")
 
@@ -50,24 +46,13 @@ Unemployment <- unemp %>%
                values_to = "Unemployment_abs") %>% 
   mutate(Unemployment_abs = Unemployment_abs*1000)
 
-GDP <- gdp %>%
-  slice(3:8) %>% 
-  select(-c(3,5)) %>% 
-  rename(NUTS = 1,
-         Name = 2) %>% 
-    pivot_longer(cols = -c("NUTS", "Name", "Unit"), 
-               names_to = "Year", 
-               values_to = "GDP_abs") %>%
-  mutate(GDP_abs = GDP_abs*1000000) %>% 
+exc_rate <- fexc %>%
+  pivot_longer(cols = -c("NUTS", "Name", "Unit"),
+               names_to = "Year",
+               values_to = "Exchange_rate") %>%
   pivot_wider(names_from = Unit,
-              values_from = GDP_abs,
-              names_prefix = "GDP_")
-
-exc_rate <- fexc %>% 
-  select(-"Unit") %>%
-  pivot_longer(cols = -c("NUTS", "Name"), 
-               names_to = "Year", 
-               values_to = "Exchange_rate") %>% 
+              values_from = Exchange_rate) %>%
+  select(-`NCU/USD`) %>% 
   arrange(NUTS, Name, Year)
 
 GVA <- gva_nace %>%
@@ -81,9 +66,9 @@ GVA <- gva_nace %>%
 GVA_Nace <- GVA %>% 
   left_join(exc_rate, by = c('NUTS', 'Name', 'Year')) %>%
   arrange(NUTS, Name, Year) %>% 
-  mutate(GVA_Euro = GVA_Nace_abs / Exchange_rate) %>% 
+  mutate(GVA_Euro = GVA_Nace_abs / `NCU/EUR`) %>% 
   select(NUTS, Name, Year, everything()) %>% 
-  select(-c(GVA_Nace_abs, Exchange_rate)) %>% 
+  select(-c(GVA_Nace_abs, `NCU/EUR`)) %>% 
   pivot_wider(names_from = Nace,
               values_from = GVA_Euro,
               names_prefix = "GVA_NACE_") %>%
@@ -95,28 +80,6 @@ GVA_NCU <- GVA %>%
   rename(GVA_NCU = GVA_Nace_abs) %>% 
   select(-Nace)
 
-Population_others <- pop %>%
-  filter(!Country == "Bosnia and Herzegovina") %>% 
-  rename(NUTS = 1,
-         Name = 2) %>% 
-  select(-c(3,4)) %>%
-  pivot_longer(cols = -c("NUTS", "Name"), 
-               names_to = "Year", 
-               values_to = "Population_abs")%>%
-  mutate(Population_abs = Population_abs*1000) %>% 
-  group_by(Name, NUTS) %>%
-  mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
-  ungroup()
-
-Population_BA <- pop_BA %>% 
-  pivot_longer(cols = starts_with("20"),
-               names_to = "Year",
-               values_to = "Population_abs") %>% 
-  mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs))
-
-Population <- rbind(Population_BA, Population_others) %>% 
-  arrange(NUTS, Year)
-
 Wages <- wages %>%
   slice(3:8) %>% 
   select(-3) %>%
@@ -125,20 +88,8 @@ Wages <- wages %>%
                values_to = "Wage_abs") %>%
   pivot_wider(names_from = Unit,
               values_from = Wage_abs,
-              names_prefix = "Wage_")
-
-# Edu_MD <- pop_edu_MD %>% 
-#   pivot_longer(cols = -c("NUTS", "Name", "Level"), 
-#                names_to = "Year", 
-#                values_to = "Pop_edu") %>%
-#   mutate(Pop_edu = Pop_edu * 1000) %>% 
-#   pivot_wider(names_from = Level,
-#               values_from = Pop_edu,
-#               names_prefix = "Pop_edu_") %>% 
-#   mutate(Pop_edu_1 = (Pop_edu_Gymnasium + `Pop_edu_Primary or no education`)/Pop_edu_Total,
-#          Pop_edu_2 = (`Pop_edu_Secondary school` + `Pop_edu_Secondary professional` + `Pop_edu_Secondary specialized`)/Pop_edu_Total,
-#          Pop_edu_3 = Pop_edu_Higher/Pop_edu_Total) %>% 
-#   select(1:3, 11:13)
+              names_prefix = "Wage_") %>% 
+  select(-Wage_NCU)
 
 WDI_data <- WDI %>% 
   pivot_longer(cols = starts_with("20"),
@@ -172,24 +123,16 @@ WDI_data <- WDI %>%
          #Pop_edu_1 = (ISCED_1 - ISCED_3)/100,
          NEET_share = NEET_share/100,
          GFCF_share = GFCF_share/100) %>% 
-  select(-Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"))
+  select(-Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"), -starts_with("LF_edu_"))
 
 #Merging ----
-data_final <- list(Emp_Nace, GVA_Nace, GVA_NCU, GDP, #Edu_MD,
-                   Actrt, Population, Wages, Unemployment,
+data_final <- list(Emp_Nace, GVA_Nace, GVA_NCU,
+                   Actrt, Wages, Unemployment,
                    WDI_data)
 
-candidates_final <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)) %>%
+candidates <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)) %>%
   arrange(NUTS, Year) %>%
-  group_by(Name, NUTS) %>%
-  mutate(GDP_capita = GDP_EUR/Population_abs,
-         GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita)) %>%
-  ungroup() %>% 
   filter(Year %in% c(2009:2019)) %>%
-  # mutate(Pop_edu_1 = coalesce(Pop_edu_1.x, Pop_edu_1.y),
-  #        Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
-  #        Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>%
-  # select(-ends_with(".x"), -ends_with(".y")) %>% 
   rename(Employment_abs = EMP_NACE_Total)
 
 Pop_edu_levels <-  Pop_edu %>% 
@@ -200,9 +143,9 @@ Pop_edu_levels <-  Pop_edu %>%
          Pop_edu_3 = Advanced/Total) %>% 
   select(-c(Total, Basic, `Less than basic`, Intermediate, Advanced))
 
-candidates <- candidates_final %>%
+candidates_final <- candidates %>%
   mutate(Year = as.double(Year)) %>% 
   full_join(Pop_edu_levels, by = c("NUTS", "Name", "Year"))
 
 #SAVING
-write.csv(candidates, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)
+write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)

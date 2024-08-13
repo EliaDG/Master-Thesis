@@ -17,8 +17,6 @@ RUIGT_GFCF <- read_excel("01_data-input/Ardeco/RUIGT_GFCF(current).xlsx", sheet 
 RUWCDW_Wage <- read_excel("01_data-input/Ardeco/RUWCDW_Wage.xlsx", sheet = "Data_clean")
 SNETD_Employment <- read_excel("01_data-input/Ardeco/SNETD_Employment.xlsx", sheet = "Data_clean")
 SNMTN_Migration <- read_excel("01_data-input/Ardeco/SNMTN_Migration.xlsx", sheet = "Data_clean")
-SNPTD_Population <- read_excel("01_data-input/Ardeco/SNPTD_Population.xlsx", sheet = "Data_clean")
-SOVGD_GDP <- read_excel("01_data-input/Ardeco/SOVGD_GDP(constant).xlsx", sheet = "Data_clean")
 SUVGDE_Productivity <- read_excel("01_data-input/Ardeco/SUVGDE_Productivity.xlsx", sheet = "Data_clean")
 SUVGE_GVA <- read_excel("01_data-input/Ardeco/SUVGE_GVA(basic).xlsx", sheet = "Data_clean")
 SUVGZ <- read_csv("01_data-input/Ardeco/SUVGZ.csv")
@@ -58,21 +56,6 @@ Migr <- SNMTN_Migration %>%
   pivot_longer(cols = -c("NUTS", "Name"), 
                names_to = "Year", 
                values_to = "Migration_abs") # People
-
-Pop <- SNPTD_Population %>%
-  pivot_longer(cols = -c("NUTS", "Name"), 
-               names_to = "Year", 
-               values_to = "Population_abs") %>%  # People
-  group_by(Name, NUTS) %>%
-  mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
-  ungroup()
-
-GDP_ardeco <- SOVGD_GDP %>%
-  select(-"Unit") %>% 
-  pivot_longer(cols = -c("NUTS", "Name"), 
-               names_to = "Year", 
-               values_to = "GDP_EUR") %>% 
-  mutate(GDP_EUR = GDP_EUR*1000000) #Million EUR
 
 Prod <- SUVGDE_Productivity %>%
   select(-"Unit") %>% 
@@ -117,7 +100,6 @@ Emp_Nace_ME <- read_excel("01_data-input/National/ME/NACE_Employment_ME.xlsx", n
 Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".")
 Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".")
 Wage_AL <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
-GDP_AL <- read_excel("01_data-input/wiiw/gdp.xlsx", sheet = "Data_clean", na = ".")
 
 Emp_Nace_TR <- Emp_Nace_TR %>%
   mutate(across(where(is.double), ~ . * 1000),
@@ -152,43 +134,22 @@ Wage_AL <- Wage_AL %>%
                values_to = "Wage_abs") %>%
   pivot_wider(names_from = "Unit",
               values_from = "Wage_abs",
-              names_prefix = "Wage_")
-
-GDP_AL <- GDP_AL %>% 
-  slice(1,2) %>% 
-  select(-c(3,5)) %>%
-  rename(NUTS = 1,
-         Name = 2) %>% 
-  pivot_longer(cols = -c("NUTS", "Name", "Unit"), 
-               names_to = "Year", 
-               values_to = "GDP_abs") %>%
-  mutate(GDP_abs = GDP_abs*1000000) %>% 
-  pivot_wider(names_from = "Unit",
-              values_from = "GDP_abs",
-              names_prefix = "GDP_")
+              names_prefix = "Wage_") %>% 
+  select(-Wage_NCU)
 
 # Merging ----
 Wage <- full_join(Wage_AL, Wage_ardeco, by = c("NUTS", "Name", "Year")) %>%
   arrange(NUTS, Year) %>%
   mutate(Wage_EUR = coalesce(Wage_EUR.x, Wage_EUR.y)) %>%
-  select(NUTS, Name, Year, Wage_EUR, Wage_NCU)
+  select(NUTS, Name, Year, Wage_EUR)
 
-GDP_EUR <- full_join(GDP_ardeco, GDP_AL, by = c("NUTS", "Name", "Year")) %>% 
-  arrange(NUTS, Year) %>%
-  mutate(GDP_EUR = coalesce(GDP_EUR.x, GDP_EUR.y)) %>%
-  select(NUTS, Name, Year, GDP_EUR, GDP_NCU)
-
-ardeco_list <- list(Emp, GDP_EUR, GFCF_EUR, GVA, GVA_Nace, Migr, Pop, Prod, Unemp, Wage)
+ardeco_list <- list(Emp, GFCF_EUR, GVA, GVA_Nace, Migr, Prod, Unemp, Wage)
 ardeco_data <- Reduce(function(x, y) merge(x, y, by = c("NUTS", "Name", "Year"), all.x = TRUE), ardeco_list)
 
 ardeco <- ardeco_data %>%
   full_join(Emp_Nace, by = c("NUTS", "Year")) %>% # Second round of merging because of Name discrepancy
   arrange(NUTS, Year) %>%
-  group_by(Name, NUTS) %>%
-  mutate( GDP_capita = GDP_EUR/Population_abs,
-          GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita)) %>%
-  filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019)) %>%
-  ungroup()
+  filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019))
 
 #SAVING
 write.csv(ardeco, file = here("02_intermediary-input", "ardeco_dataset.csv"), row.names = FALSE)

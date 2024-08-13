@@ -12,9 +12,9 @@ ex1 <- dataset %>%
   filter(Subregion == "EU Candidates")
 ex2 <- dataset %>%
   filter(Subregion != "EU Candidates")
-length(unique(ex1$NUTS)); length(unique(ex2$NUTS))
+length(unique(ex1$NUTS)) + length(unique(ex2$NUTS))
 core <- dataset %>% 
-  select(-c(Country, Lon, Lat, Dist_BRUX, Subregion, Capital, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
+  select(-c(Country, Dist_BRUX, Subregion, Capital, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
   st_set_geometry(NULL)
 
 total_observations <- nrow(core) * ncol(core)

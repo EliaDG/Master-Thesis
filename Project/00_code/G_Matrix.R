@@ -59,9 +59,10 @@ queen_nb <- queen_listw$neighbours
 coords <- st_coordinates(st_centroid(data_final$geometry))
 dist <- nbdists(queen_nb, coords, longlat = TRUE)
 idw <- lapply(dist, function(x) 1/(x))
-# idw_squared <- lapply(dist, function(x) 1/(x^2))
+idw_2 <- lapply(dist, function(x) 1/(x^2))
 region_names <- attr(queen_nb, "region.id")
 idw_named <- setNames(idw, region_names)
+idw_2_named <- setNames(idw_2, region_names)
 
 # Number of regions
 num_regions <- length(region_names)
@@ -81,8 +82,24 @@ for (i in seq_along(idw_named)) {
   idw_matrix[region, region_names[neighbors]] <- idw_values
 }
 
+# Initialize an empty matrix
+idw_2_matrix <- matrix(0, nrow = num_regions, ncol = num_regions)
+rownames(idw_2_matrix) <- region_names
+colnames(idw_2_matrix) <- region_names
+
+# Fill the matrix with idw values
+for (i in seq_along(idw_named)) {
+  region <- names(idw_2_named)[i]
+  neighbors <- queen_nb[[i]]
+  idw_2_values <- idw_2_named[[i]]
+  
+  # Assign the idw values to the corresponding positions in the matrix
+  idw_2_matrix[region, region_names[neighbors]] <- idw_2_values
+}
+
 #SAVING
 saveRDS(idw_matrix, file = "03_final-input/idw_matrix.rds")
+saveRDS(idw_2_matrix, file = "03_final-input/idw_matrix.rds")
 
 # Appendix
 queen_lines <- listw2lines(queen_listw, coords = st_centroid(data_final$geometry))

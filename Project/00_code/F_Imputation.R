@@ -6,9 +6,9 @@ source("00_code/__functions.R")
 
 #LOADING DATA
 dataset <- readRDS("03_final-input/dataset.rds")
+colnames(dataset) <- make.names(colnames(dataset))
 glimpse(dataset)
 summary(dataset)
-colnames(dataset) <- make.names(colnames(dataset))
 
 #Transformation --------------
 summary(dataset$Migration_abs)

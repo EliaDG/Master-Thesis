@@ -20,9 +20,17 @@ core <- dataset %>%
 total_observations <- nrow(core) * ncol(core)
 total_NAs <- sum(is.na(core))
 dataset_NAs <- round((total_NAs / total_observations) * 100,2)
-
 NAs_per_column <- colSums(is.na(core))
 variable_NAs <- round((NAs_per_column / nrow(core)) * 100,2)
+
+core_year <- core %>% 
+  pivot_longer(cols = -c(NUTS, Name, Year),
+               names_to = "Series",
+               values_to = "Values") %>% 
+  pivot_wider(names_from = Year,
+              values_from = Values)
+NAs_per_column <- colSums(is.na(core_year))
+variable_NAs <- round((NAs_per_column / nrow(core_year)) * 100,2)
 
 nuts_NAs <- core %>%
   group_by(NUTS, Name) %>%
@@ -38,6 +46,9 @@ nuts_NAs <- core %>%
   select(NUTS, Name, share_NAs) %>%
   arrange(desc(share_NAs))
 head(nuts_NAs, 10)
+
+subset_NA <- core %>%
+  filter(if_any(everything(), is.na))
 
 # NUTS shape across time ----
 data_ex <- dataset %>%
@@ -74,10 +85,10 @@ filtered_data <- dataset %>%
   filter(Subregion == "EU Candidates",
          !Country == "Turkey")
 
-ggplot(filtered_data, aes(x = Year, y = Pop_edu_1, color = Country, group = NUTS)) +
+ggplot(filtered_data, aes(x = Year, y = Pop_edu_3, color = Country, group = NUTS)) +
   geom_line(linewidth = 1) +
   labs(x = "Year",
-       y = "Pop_edu_3",
+       y = "Population with Advanced Edu",
        color = "Country:") +
   scale_size_manual(values = c(1, 2), guide = "none") + 
   theme_minimal() +

@@ -68,7 +68,7 @@ NUTS2_complete <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BI
 dataset_complete <- dataset %>%
   full_join(NUTS2_complete, by = c("NUTS")) %>%
   st_as_sf(crs = "WGS84") %>% 
-  mutate(Area = as.numeric(st_area(geometry)),
+  mutate(Area = as.numeric(st_area(geometry))/1e6, 
          Centroid = st_centroid(geometry),
          Coor = st_coordinates(Centroid),
          Lon = Coor[,"X"],
@@ -137,13 +137,22 @@ dataset_complete <- dataset %>%
                           "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "United Kingdom") ~ "Yes",
            Country == "Croatia" & Year %in% 2013:2019 ~ "Yes",
            TRUE ~ "No"),
-         Output_density = GDP_EUR/Area,
-         Employment_density = Employment_abs/Area,
-         Population_density = Population_abs/Area) %>%
+         Euro = case_when(
+           Country %in% c("Austria", "Belgium", "Cyprus", "Finland",
+                          "France", "Germany", "Greece", "Ireland", "Italy", 
+                          "Luxembourg", "Malta", "Netherlands", "Portugal", 
+                          "Slovakia", "Slovenia", "Spain", "Montenegro", "North Macedonia") ~ "Yes",
+           Country == "Estonia" & Year %in% 2011:2019 ~ "Yes",
+           Country == "Latvia" & Year %in% 2014:2019 ~ "Yes",
+           Country == "Lithuania" & Year %in% 2015:2019 ~ "Yes",
+           TRUE ~ "No"),
+         Output_density = (GDP_EUR/1000000)/Area,
+         Employment_density = (Employment_abs/1000)/Area,
+         Population_density = (Population_abs/1000)/Area) %>%
   select(-geometry, Country, NUTS, Name, Subregion, Year, everything(), geometry) %>% 
   select(-c(Area, Population_abs, GDP_EUR, Employment_abs, Coor)) %>% 
   st_cast("MULTIPOLYGON")
-
+summary(dataset_complete)
 bruxelles_centroid <- dataset_complete %>%
   select(NUTS, Name, Year, Centroid) %>% 
   filter(NUTS == "BE10") %>%
@@ -168,8 +177,9 @@ dataset_final <- dataset_complete %>%
          Coastal = as.factor(Coastal),
          Island = as.factor(Island),
          Beneficiary = as.factor(Beneficiary),
-         EU_Member = as.factor(EU_Member)) %>%
-  select(NUTS, Name, Country, Subregion, Year, GDP_growth, Capital, Coastal, Island, Beneficiary, EU_Member, everything()) %>% 
+         EU_Member = as.factor(EU_Member),
+         Euro = as.factor(Euro)) %>%
+  select(NUTS, Name, Country, Subregion, Year, GDP_growth, Capital, Coastal, Island, Beneficiary, EU_Member, Euro, everything()) %>% 
   select(-geometry, everything(), geometry) %>% 
   select(-c(Centroid, Lon, Lat))
 

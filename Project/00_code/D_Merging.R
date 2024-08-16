@@ -65,10 +65,11 @@ dataset <- full_join(data_EU, data_EXTRA) %>%
   mutate(Country = sapply(NUTS, mapping_nuts),
          Employment_rate = Employment_abs / Population_abs,
          Unemployment_rate = Unemployment_abs / Population_abs,
+         Migration_rate = Migration_abs/Population_abs,
          GFCF_share = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GFCF_share, GFCF_EUR / GDP_EUR),
          Labor_Productivity_abs = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GDP_EUR/Employment_abs, Labor_Productivity_abs)) %>% 
   select(NUTS, Name, Country, Year, GDP_growth, everything()) %>% 
-  select(-GFCF_EUR)
+  select(-c(GFCF_EUR, Migration_abs))
 
 #SAVING
 write.csv(dataset, file = here("02_intermediary-input", "dataset-merged.csv"), row.names = FALSE)

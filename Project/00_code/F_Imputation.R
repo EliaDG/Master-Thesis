@@ -11,12 +11,12 @@ glimpse(dataset)
 summary(dataset)
 
 #Transformation --------------
-# summary(dataset$Migration_abs)
-# hist(dataset$Migration_abs,
-#      main = "Histogram of Your Variable", 
-#      xlab = "Your Variable", 
-#      ylab = "Frequency", 
-#      col = "lightblue", 
+summary(dataset$Migration_rate)
+# hist(dataset$Migration_rate,
+#      main = "Histogram of Your Variable",
+#      xlab = "Your Variable",
+#      ylab = "Frequency",
+#      col = "lightblue",
 #      border = "black")
 
 geom <- dataset %>% 
@@ -24,17 +24,14 @@ geom <- dataset %>%
 
 data <- dataset %>% 
   st_set_geometry(NULL) %>%
-  mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p),
-         Migration = sign(Migration_abs) * abs(Migration_abs)^(1/3),
-         Migration = as.numeric(scale(Migration))) %>%
-  select(-Migration_abs) %>%
+  mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p)) %>%
   rename(Labor_Prodx = Labor_Productivity_abs) %>%
   as.data.frame()
 
 #Imputation ----------
 doParallel::registerDoParallel()
 data_amelia <- amelia(data, m = 5, ts = "Year", cs = "NUTS", polytime = 1,
-                      noms = c("Subregion","Capital","Coastal","Island","Beneficiary","EU_Member"),
+                      noms = c("Subregion","Capital","Coastal","Island","Beneficiary","EU_Member", "Euro"),
                       idvars = c("Name", "Country"))
 #plot(data_amelia)
 
@@ -50,15 +47,15 @@ predictormatrix<-quickpred(data,
                            include = c("Pop_growth", "Labor_Prodx", "Wage_EUR", "GDP_capita", 
                                        "Activity_rate", "NEET_share", "Life_exp", "Fertility_rate", 
                                        "Pop_edu_1", "Pop_edu_2", "Pop_edu_3", "Employment_rate", 
-                                       "Unemployment_rate", "Prodx_A", "Prodx_B.E", "Prodx_F", 
+                                       "Unemployment_rate", "Migration_rate" ,"Prodx_A", "Prodx_B.E", "Prodx_F", 
                                        "Prodx_G.I", "Prodx_J", "Prodx_K", "Prodx_L.M.N", 
                                        "Prodx_O.Q", "Prodx_R.U", "inv_rate", "GFCF_share", 
                                        "GVA_A", "GVA_B.E", "GVA_F", "GVA_G.I", 
                                        "GVA_J", "GVA_K", "GVA_L.M.N", "GVA_O.Q", 
                                        "GVA_R.U", "Output_density", 
-                                       "Employment_density", "Population_density", "Dist_BRUX","Migration"),
+                                       "Employment_density", "Population_density", "Dist_BRUX"),
                            exclude = c("NUTS", "Name", "Country", "Subregion","Year",
-                                        "Capital", "Coastal", "Island", "Beneficiary", "EU_Member"),
+                                        "Capital", "Coastal", "Island", "Beneficiary", "EU_Member", "Euro"),
                            mincor = 0.6)
 
 doParallel::registerDoParallel()

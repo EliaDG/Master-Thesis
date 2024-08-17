@@ -75,10 +75,12 @@ dataset_complete <- dataset %>%
          Lat = Coor[,"Y"],
          Subregion = case_when(
            Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey") ~ "EU Candidates",
-           Country %in% c("Poland", "Czeck Republic", "Slovakia", "Hungary", "Lithuania", "Lavtia", "Estonia", "Croatia", "Bulgaria","Greece", "Romania", "Cyprus") ~ "Central-Eastern Europe",
+           Country %in% c("Poland", "Czech Republic", "Slovakia", "Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus") ~ "Central-Eastern Europe",
            TRUE ~ "Western Europe"),
          Capital = case_when(
-           NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", "HR05", "HR04", "HU11", "IE02", "IE06", "ITI4", "LT01", "NL32", "PL91", "PT17", "RO32", "RS11", "SE11", "SI04", "SK01", "TR51") ~ "Capital Region",
+           NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", 
+                       "HR05", "HR04", "HU11", "IE02", "IE06", "ITI4", "LT01", "NL32", "PL91", "PT17", 
+                       "RO32", "RS11", "SE11", "SI04", "SK01", "TR51") ~ "Yes",
            grepl("00", NUTS) | grepl("UKI", NUTS) | grepl("HU1", NUTS) ~ "Yes",
            TRUE ~ "No"),
          Coastal = case_when(

@@ -14,14 +14,17 @@ ex2 <- dataset %>%
   filter(Subregion != "EU Candidates")
 length(unique(ex1$NUTS)) + length(unique(ex2$NUTS))
 core <- dataset %>% 
-  select(-c(Country, Dist_BRUX, Subregion, Capital, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
+  select(-c(Country, Dist_BRUX, Subregion, Capital, Euro, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
   st_set_geometry(NULL)
-
+glimpse(core)
 total_observations <- nrow(core) * ncol(core)
 total_NAs <- sum(is.na(core))
 dataset_NAs <- round((total_NAs / total_observations) * 100,2)
+dataset_NAs
+
 NAs_per_column <- colSums(is.na(core))
 variable_NAs <- round((NAs_per_column / nrow(core)) * 100,2)
+variable_NAs
 
 core_year <- core %>% 
   pivot_longer(cols = -c(NUTS, Name, Year),
@@ -29,14 +32,15 @@ core_year <- core %>%
                values_to = "Values") %>% 
   pivot_wider(names_from = Year,
               values_from = Values)
-NAs_per_column <- colSums(is.na(core_year))
-variable_NAs <- round((NAs_per_column / nrow(core_year)) * 100,2)
+NAs_per_column_year <- colSums(is.na(core_year))
+variable_NAs <- round((NAs_per_column_year / nrow(core_year)) * 100,2)
+variable_NAs
 
-nuts_NAs <- core %>%
+na_percentage <- core %>%
   group_by(NUTS, Name) %>%
   summarise(across(everything(), ~ sum(is.na(.)))) %>%
   rowwise() %>%
-  mutate(total_NAs = sum(c_across(starts_with("MIgration_abs"):starts_with("Population_density"))),
+  mutate(total_NAs = sum(c_across(starts_with("Labor_"):starts_with("Population_density"))),
          total_years = length(unique(core$Year)),
          total_variables = ncol(core) - 3,  # Subtracting 3 for NUTS, Name, and Year columns
          total_values = total_years * total_variables,
@@ -45,7 +49,8 @@ nuts_NAs <- core %>%
   ungroup() %>%
   select(NUTS, Name, share_NAs) %>%
   arrange(desc(share_NAs))
-head(nuts_NAs, 10)
+
+head(na_percentage, 20)
 
 subset_NA <- core %>%
   filter(if_any(everything(), is.na))

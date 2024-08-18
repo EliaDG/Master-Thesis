@@ -56,27 +56,27 @@ NUTS2_extra_merged <- NUTS2_2021 %>%
   merge_geometries(c("HR02", "HR05", "HR06"), "HR04", "Kontinentalna Hrvatska (NUTS 2016)") %>%
   merge_geometries(c("AL01", "AL02", "AL03"), "AL00", "Albania")
 
-NUTS2_complete <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BIH) %>% 
+shapefile_NUTS2 <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BIH) %>% 
   filter(!NUTS %in% c("FRY1", "FRY2", "FRY3", "FRY4", "FRY5",
                       "PT20", "PT30",
                       "ES70", "ES63", "ES64",
                       "AL01", "AL02", "AL03")) %>%
   filter(!grepl("ZZ|CH|NO|LI|IS", NUTS)) %>% 
-  arrange(NUTS) %>% 
-  select(-2)
+  arrange(NUTS) %>%
+  select(-Name) %>% 
+  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
+                      "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20"))
 
 dataset_complete <- dataset %>%
-  full_join(NUTS2_complete, by = c("NUTS")) %>%
+  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
+                      "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>% 
+  full_join(shapefile_NUTS2, by = "NUTS") %>%
   st_as_sf(crs = "WGS84") %>% 
-  mutate(Area = as.numeric(st_area(geometry))/1e6, 
-         Centroid = st_centroid(geometry),
-         Coor = st_coordinates(Centroid),
-         Lon = Coor[,"X"],
-         Lat = Coor[,"Y"],
+  mutate(Area = as.numeric(st_area(geometry))/1e6,
          Subregion = case_when(
-           Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey") ~ "EU Candidates",
-           Country %in% c("Poland", "Czech Republic", "Slovakia", "Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus") ~ "Central-Eastern Europe",
-           TRUE ~ "Western Europe"),
+           Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey") ~ "Candidates",
+           Country %in% c("Poland", "Czech Republic", "Slovakia", "Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus") ~ "CEE",
+           TRUE ~ "West"),
          Capital = case_when(
            NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", 
                        "HR05", "HR04", "HU11", "IE02", "IE06", "ITI4", "LT01", "NL32", "PL91", "PT17", 
@@ -131,14 +131,14 @@ dataset_complete <- dataset %>%
                        "PT11", "PT16", "PT18", "RO11", "RO12", "RO21", "RO22",
                        "RO31", "RO41", "RO42", "SI01", "SK02", "SK03", "SK04", "UKK3", "UKL1") & Year %in% 2014:2019 ~ "Yes",
            TRUE ~ "No"),
-         EU_Member = case_when(
-           Country %in% c("Austria", "Belgium", "Bulgaria", "Cyprus",
-                          "Czech Republic", "Denmark", "Estonia", "Finland", "France", 
-                          "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
-                          "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland",
-                          "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "United Kingdom") ~ "Yes",
-           Country == "Croatia" & Year %in% 2013:2019 ~ "Yes",
-           TRUE ~ "No"),
+         # EU_Member = case_when(
+         #   Country %in% c("Austria", "Belgium", "Bulgaria", "Cyprus",
+         #                  "Czech Republic", "Denmark", "Estonia", "Finland", "France", 
+         #                  "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
+         #                  "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland",
+         #                  "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "United Kingdom") ~ "Yes",
+         #   Country == "Croatia" & Year %in% 2013:2019 ~ "Yes",
+         #   TRUE ~ "No"),
          Euro = case_when(
            Country %in% c("Austria", "Belgium", "Cyprus", "Finland",
                           "France", "Germany", "Greece", "Ireland", "Italy", 
@@ -152,38 +152,32 @@ dataset_complete <- dataset %>%
          Employment_density = (Employment_abs/1000)/Area,
          Population_density = (Population_abs/1000)/Area) %>%
   select(-geometry, Country, NUTS, Name, Subregion, Year, everything(), geometry) %>% 
-  select(-c(Area, Population_abs, GDP_EUR, Employment_abs, Coor)) %>% 
+  select(-c(Area, Population_abs, GDP_EUR, Employment_abs)) %>% 
   st_cast("MULTIPOLYGON")
-summary(dataset_complete)
-bruxelles_centroid <- dataset_complete %>%
-  select(NUTS, Name, Year, Centroid) %>% 
+
+bruxelles_centroid <- shapefile_NUTS2 %>%
   filter(NUTS == "BE10") %>%
+  mutate(Centroid = st_centroid(geometry)) %>% 
   st_geometry()
 
-dataset_centroids <- dataset_complete %>%
-  select(NUTS, Name, Year, Centroid)
+dataset_centroids <- shapefile_NUTS2 %>%
+  mutate(Centroid = st_centroid(geometry))
 
-Dist_BRUX <- dataset_complete %>%
-  select(NUTS, Name, Year) %>% 
+Dist_BRUX <- shapefile_NUTS2 %>% 
   mutate(Dist_BRUX = as.numeric(st_distance(st_geometry(dataset_centroids), bruxelles_centroid[1])),
          Dist_BRUX = Dist_BRUX/1000) %>%
   st_set_geometry(NULL)
 
 dataset_final <- dataset_complete %>% 
-  full_join(Dist_BRUX) %>%
-  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
-                      "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>%
+  full_join(Dist_BRUX, by = "NUTS") %>%
   mutate(Country = as.factor(Country),
          Subregion = as.factor(Subregion),
-         Capital = as.factor(Capital),
-         Coastal = as.factor(Coastal),
-         Island = as.factor(Island),
-         Beneficiary = as.factor(Beneficiary),
-         EU_Member = as.factor(EU_Member),
-         Euro = as.factor(Euro)) %>%
-  select(NUTS, Name, Country, Subregion, Year, GDP_growth, Capital, Coastal, Island, Beneficiary, EU_Member, Euro, everything()) %>% 
-  select(-geometry, everything(), geometry) %>% 
-  select(-c(Centroid, Lon, Lat))
+         across(c(Capital, Coastal, Island, Beneficiary, Euro), #EU_Member
+                ~ as.numeric(ifelse(. == "Yes", 1, ifelse(. == "No", 0, .))))) %>%
+  st_set_geometry(NULL)
+
+colnames(dataset_final) <- make.names(colnames(dataset_final))
 
 #SAVING
 saveRDS(dataset_final, "03_final-input/dataset.rds")
+saveRDS(shapefile_NUTS2, "03_final-input/shapefile.rds")

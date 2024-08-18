@@ -6,7 +6,6 @@ source("00_code/__functions.R")
 
 #LOADING DATA
 dataset <- readRDS("03_final-input/dataset.rds")
-colnames(dataset) <- make.names(colnames(dataset))
 glimpse(dataset)
 summary(dataset)
 
@@ -19,19 +18,16 @@ summary(dataset$Migration_rate)
 #      col = "lightblue",
 #      border = "black")
 
-geom <- dataset %>% 
-  select(NUTS, Year, geometry)
-
-data <- dataset %>% 
-  st_set_geometry(NULL) %>%
+data <- dataset %>%
   mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p)) %>%
   rename(Labor_Prodx = Labor_Productivity_abs) %>%
-  as.data.frame()
+  as.data.frame() 
 
 #Imputation ----------
 doParallel::registerDoParallel()
 data_amelia <- amelia(data, m = 5, ts = "Year", cs = "NUTS", polytime = 1,
-                      noms = c("Subregion","Capital","Coastal","Island","Beneficiary","EU_Member", "Euro"),
+                      noms = c("Capital", "Coastal", "Island", "Beneficiary", 
+                               "EU_Member", "Euro", "Subregion"),
                       idvars = c("Name", "Country"))
 #plot(data_amelia)
 
@@ -53,9 +49,9 @@ predictormatrix<-quickpred(data,
                                        "GVA_A", "GVA_B.E", "GVA_F", "GVA_G.I", 
                                        "GVA_J", "GVA_K", "GVA_L.M.N", "GVA_O.Q", 
                                        "GVA_R.U", "Output_density", 
-                                       "Employment_density", "Population_density", "Dist_BRUX"),
-                           exclude = c("NUTS", "Name", "Country", "Subregion","Year",
-                                        "Capital", "Coastal", "Island", "Beneficiary", "EU_Member", "Euro"),
+                                       "Employment_density", "Population_density", "Dist_BRUX",
+                                       "Capital", "Coastal", "Island", "Beneficiary", "EU_Member", "Euro"),
+                           exclude = c("NUTS", "Name", "Year", "Country", "Subregion"),
                            mincor = 0.6)
 
 doParallel::registerDoParallel()
@@ -88,13 +84,20 @@ columns_to_convert <- c("Labor_Prodx", "Activity_rate", "NEET_share", "Life_exp"
 medians_data_mice <- medians_data_mice %>%
   mutate_at(vars(one_of(columns_to_convert)), as.numeric)
 
-dataset_amelia <- medians_data_amelia %>% 
-  full_join(geom)
-dataset_mice <- medians_data_mice %>% 
-  full_join(geom)
 
-sum(is.na(dataset_amelia))
-sum(is.na(dataset_mice))
+# encoded_dataset <- dataset_final
+# encoded_dataset$Country <- relevel(encoded_dataset$Country, ref = "France")
+# encoded_dataset$Subregion <- relevel(encoded_dataset$Subregion, ref = "West")
+# 
+# factor_vars <- names(encoded_dataset)[sapply(encoded_dataset, is.factor)]
+# for (var in factor_vars) {
+#   one_hot <- model.matrix(as.formula(paste("~", var)), data = encoded_dataset)
+#   one_hot <- one_hot[, -1]
+#   colnames(one_hot) <- gsub(paste0(var, ""), "", colnames(one_hot))
+#   encoded_dataset <- cbind(encoded_dataset, one_hot)
+#   encoded_dataset <- encoded_dataset[ , !(names(encoded_dataset) %in% c(var))]
+# }
+
 
 #SAVING -----------
 saveRDS(dataset_amelia, "03_final-input/dataset_amelia.rds")

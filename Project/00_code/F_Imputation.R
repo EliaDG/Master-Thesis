@@ -21,14 +21,18 @@ summary(dataset$Migration_rate)
 data <- dataset %>%
   mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p)) %>%
   rename(Labor_Prodx = Labor_Productivity_abs) %>%
-  as.data.frame() 
+  as.data.frame() %>% 
+  select(-c(50:85))
+
+data_country <- dataset %>% 
+  select(c(NUTS, Year, 50:85))
 
 #Imputation ----------
 doParallel::registerDoParallel()
 data_amelia <- amelia(data, m = 5, ts = "Year", cs = "NUTS", polytime = 1,
-                      noms = c("Capital", "Coastal", "Island", "Beneficiary", 
-                               "EU_Member", "Euro", "Subregion"),
-                      idvars = c("Name", "Country"))
+                      noms = c("Candidates", "CEE", "Capital", "Coastal", "Island", "Objective_1", "Euro"),
+                      idvars = "Name")
+
 #plot(data_amelia)
 
 medians_data_amelia <- list()
@@ -50,8 +54,8 @@ predictormatrix<-quickpred(data,
                                        "GVA_J", "GVA_K", "GVA_L.M.N", "GVA_O.Q", 
                                        "GVA_R.U", "Output_density", 
                                        "Employment_density", "Population_density", "Dist_BRUX",
-                                       "Capital", "Coastal", "Island", "Beneficiary", "EU_Member", "Euro"),
-                           exclude = c("NUTS", "Name", "Year", "Country", "Subregion"),
+                                       "Candidates", "CEE", "Capital", "Coastal", "Island", "Objective_1", "Euro"),
+                           exclude = c("NUTS", "Name", "Year"),
                            mincor = 0.6)
 
 doParallel::registerDoParallel()
@@ -84,20 +88,10 @@ columns_to_convert <- c("Labor_Prodx", "Activity_rate", "NEET_share", "Life_exp"
 medians_data_mice <- medians_data_mice %>%
   mutate_at(vars(one_of(columns_to_convert)), as.numeric)
 
-
-# encoded_dataset <- dataset_final
-# encoded_dataset$Country <- relevel(encoded_dataset$Country, ref = "France")
-# encoded_dataset$Subregion <- relevel(encoded_dataset$Subregion, ref = "West")
-# 
-# factor_vars <- names(encoded_dataset)[sapply(encoded_dataset, is.factor)]
-# for (var in factor_vars) {
-#   one_hot <- model.matrix(as.formula(paste("~", var)), data = encoded_dataset)
-#   one_hot <- one_hot[, -1]
-#   colnames(one_hot) <- gsub(paste0(var, ""), "", colnames(one_hot))
-#   encoded_dataset <- cbind(encoded_dataset, one_hot)
-#   encoded_dataset <- encoded_dataset[ , !(names(encoded_dataset) %in% c(var))]
-# }
-
+dataset_amelia <- medians_data_amelia %>% 
+  full_join(data_country)
+dataset_mice <- medians_data_mice %>% 
+  full_join(data_country)
 
 #SAVING -----------
 saveRDS(dataset_amelia, "03_final-input/dataset_amelia.rds")
@@ -115,13 +109,13 @@ saveRDS(dataset_mice, "03_final-input/dataset_mice.rds")
 # }
 # mean_data_amelia <- as.data.frame(mean_data_amelia)
 #
-# data_median <- data_new
-# for(i in 1:nrow(data_median)){
-#   for(j in 1:ncol(data_median)) {
-#     data_median[i,j] <- median(c(complete(data_mice,1)[i,j],
-#                                  complete(data_mice,2)[i,j],
-#                                  complete(data_mice,3)[i,j],
-#                                  complete(data_mice,4)[i,j],
-#                                  complete(data_mice,5)[i,j]))
+# data_mean <- data_new
+# for(i in 1:nrow(data_mean)){
+#   for(j in 1:ncol(data_mean)) {
+#     data_mean[i,j] <- mean(c(complete(data_mice,1)[i,j],
+#                              complete(data_mice,2)[i,j],
+#                              complete(data_mice,3)[i,j],
+#                              complete(data_mice,4)[i,j],
+#                              complete(data_mice,5)[i,j]))
 #   }
 # }

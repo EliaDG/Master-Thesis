@@ -73,10 +73,8 @@ dataset_complete <- dataset %>%
   full_join(shapefile_NUTS2, by = "NUTS") %>%
   st_as_sf(crs = "WGS84") %>% 
   mutate(Area = as.numeric(st_area(geometry))/1e6,
-         Subregion = case_when(
-           Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey") ~ "Candidates",
-           Country %in% c("Poland", "Czech Republic", "Slovakia", "Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus") ~ "CEE",
-           TRUE ~ "West"),
+         Candidates = ifelse(Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey"), "Yes", "No"),
+         CEE = ifelse(Country %in% c("Poland", "Czech Republic", "Slovakia", "Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus"), "Yes", "No"),
          Capital = case_when(
            NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", 
                        "HR05", "HR04", "HU11", "IE02", "IE06", "ITI4", "LT01", "NL32", "PL91", "PT17", 
@@ -105,7 +103,7 @@ dataset_complete <- dataset %>%
            NUTS %in% c("CY00", "DK01", "DK02", "EL41", "EL42", "EL43", "EL62", "ES53", "FI20", "FRM0", "ITG1", "ITG2", "MT00") ~ "Yes",
            grepl("IE", NUTS) | grepl("UK", NUTS) ~ "Yes",
            TRUE ~ "No"),
-         Beneficiary = case_when(
+         Objective_1 = case_when(
            NUTS %in% c("CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08", "DE40",
                        "DE80", "DED2", "DED4", "DEE0", "DEG0", "EL41", "EL43", "EL51",
                        "EL54", "EL61", "EL62", "EL63", "EL65", "ES11", "ES42", "ES43",
@@ -131,14 +129,6 @@ dataset_complete <- dataset %>%
                        "PT11", "PT16", "PT18", "RO11", "RO12", "RO21", "RO22",
                        "RO31", "RO41", "RO42", "SI01", "SK02", "SK03", "SK04", "UKK3", "UKL1") & Year %in% 2014:2019 ~ "Yes",
            TRUE ~ "No"),
-         # EU_Member = case_when(
-         #   Country %in% c("Austria", "Belgium", "Bulgaria", "Cyprus",
-         #                  "Czech Republic", "Denmark", "Estonia", "Finland", "France", 
-         #                  "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
-         #                  "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland",
-         #                  "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "United Kingdom") ~ "Yes",
-         #   Country == "Croatia" & Year %in% 2013:2019 ~ "Yes",
-         #   TRUE ~ "No"),
          Euro = case_when(
            Country %in% c("Austria", "Belgium", "Cyprus", "Finland",
                           "France", "Germany", "Greece", "Ireland", "Italy", 
@@ -151,7 +141,7 @@ dataset_complete <- dataset %>%
          Output_density = (GDP_EUR/1000000)/Area,
          Employment_density = (Employment_abs/1000)/Area,
          Population_density = (Population_abs/1000)/Area) %>%
-  select(-geometry, Country, NUTS, Name, Subregion, Year, everything(), geometry) %>% 
+  select(-geometry, Country, NUTS, Name, Year, everything(), geometry) %>% 
   select(-c(Area, Population_abs, GDP_EUR, Employment_abs)) %>% 
   st_cast("MULTIPOLYGON")
 
@@ -171,13 +161,18 @@ Dist_BRUX <- shapefile_NUTS2 %>%
 dataset_final <- dataset_complete %>% 
   full_join(Dist_BRUX, by = "NUTS") %>%
   mutate(Country = as.factor(Country),
-         Subregion = as.factor(Subregion),
-         across(c(Capital, Coastal, Island, Beneficiary, Euro), #EU_Member
+         across(c(Capital, Coastal, Island, Objective_1, Euro, CEE, Candidates),
                 ~ as.numeric(ifelse(. == "Yes", 1, ifelse(. == "No", 0, .))))) %>%
   st_set_geometry(NULL)
 
-colnames(dataset_final) <- make.names(colnames(dataset_final))
+encoded_dataset <- dataset_final
+one_hot <- model.matrix(~ Country - 1, data = encoded_dataset)
+colnames(one_hot) <- gsub("Country", "", colnames(one_hot))
+encoded_dataset <- cbind(encoded_dataset, one_hot)
+encoded_dataset <- encoded_dataset[, !(names(encoded_dataset) %in% c("Country"))]
+
+colnames(encoded_dataset) <- make.names(colnames(encoded_dataset))
 
 #SAVING
-saveRDS(dataset_final, "03_final-input/dataset.rds")
+saveRDS(encoded_dataset, "03_final-input/dataset.rds")
 saveRDS(shapefile_NUTS2, "03_final-input/shapefile.rds")

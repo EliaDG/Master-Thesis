@@ -19,7 +19,7 @@ summary(dataset$Migration_rate)
 #      border = "black")
 
 data <- dataset %>%
-  mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log1p)) %>%
+  mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log)) %>%
   rename(Labor_Prodx = Labor_Productivity_abs) %>%
   as.data.frame() %>% 
   select(-c(50:85))

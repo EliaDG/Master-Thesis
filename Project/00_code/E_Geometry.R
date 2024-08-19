@@ -56,7 +56,7 @@ NUTS2_extra_merged <- NUTS2_2021 %>%
   merge_geometries(c("HR02", "HR05", "HR06"), "HR04", "Kontinentalna Hrvatska (NUTS 2016)") %>%
   merge_geometries(c("AL01", "AL02", "AL03"), "AL00", "Albania")
 
-shapefile_NUTS2 <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BIH) %>% 
+geom_NUTS2 <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BIH) %>% 
   filter(!NUTS %in% c("FRY1", "FRY2", "FRY3", "FRY4", "FRY5",
                       "PT20", "PT30",
                       "ES70", "ES63", "ES64",
@@ -70,7 +70,7 @@ shapefile_NUTS2 <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, B
 dataset_complete <- dataset %>%
   filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
                       "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>% 
-  full_join(shapefile_NUTS2, by = "NUTS") %>%
+  full_join(geom_NUTS2, by = "NUTS") %>%
   st_as_sf(crs = "WGS84") %>% 
   mutate(Area = as.numeric(st_area(geometry))/1e6,
          Candidates = ifelse(Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey"), "Yes", "No"),
@@ -145,15 +145,15 @@ dataset_complete <- dataset %>%
   select(-c(Area, Population_abs, GDP_EUR, Employment_abs)) %>% 
   st_cast("MULTIPOLYGON")
 
-bruxelles_centroid <- shapefile_NUTS2 %>%
+bruxelles_centroid <- geom_NUTS2 %>%
   filter(NUTS == "BE10") %>%
   mutate(Centroid = st_centroid(geometry)) %>% 
   st_geometry()
 
-dataset_centroids <- shapefile_NUTS2 %>%
+dataset_centroids <- geom_NUTS2 %>%
   mutate(Centroid = st_centroid(geometry))
 
-Dist_BRUX <- shapefile_NUTS2 %>% 
+Dist_BRUX <- geom_NUTS2 %>% 
   mutate(Dist_BRUX = as.numeric(st_distance(st_geometry(dataset_centroids), bruxelles_centroid[1])),
          Dist_BRUX = Dist_BRUX/1000) %>%
   st_set_geometry(NULL)
@@ -175,4 +175,4 @@ colnames(encoded_dataset) <- make.names(colnames(encoded_dataset))
 
 #SAVING
 saveRDS(encoded_dataset, "03_final-input/dataset.rds")
-saveRDS(shapefile_NUTS2, "03_final-input/shapefile.rds")
+saveRDS(geom_NUTS2, "03_final-input/geometries.rds")

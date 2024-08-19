@@ -6,41 +6,48 @@ source("00_code/__functions.R")
 
 #LOADING DATA
 dataset <- readRDS("03_final-input/dataset_amelia.rds")
-glimpse(data)
+geom <- readRDS("03_final-input/geometries.rds")
+W <- readRDS("03_final-input/idw_listw.rds")
+
+# Convergence Analysis ------
 data <- dataset %>% 
-  select(NUTS, Name, Country, Year, Subregion, GDP_capita) %>%
-  pivot_longer(cols = -c(NUTS, Name, Country, Year, Subregion),
+  select(NUTS, Name, Year, GDP_capita) %>%
+  pivot_longer(cols = -c(NUTS, Name, Year),
                names_to = "Series",
                values_to = "Values") %>% 
   pivot_wider(names_from = "Year",
               values_from = "Values") %>%
-  mutate(GDP_gg = `2019` - `2009`,
-         Color_Group = ifelse(Country == "Greece", "Greece", Subregion)) %>%
+  mutate(
+    GDP_gg = `2019` - `2009`,
+    ColorMap = case_when(
+      str_detect(NUTS, "^BA|^RS|^ME|^MK|^AL|^MD|^XK|^TR") ~ "EU Candidates",
+      str_detect(NUTS, "^PL|^CZ|^SK|^HU|^LT|^LV|^EE|^HR|^BG|^RO|^CY") ~ "Central-Eastern Europe",
+      str_detect(NUTS, "^EL") ~ "Greece",
+      TRUE ~ "Western Europe"
+    )
+  ) %>%
   select(-c(starts_with("201"))) %>%
   select(-Series)
-glimpse(data)
 
-# Perform the OLS regression
 beta_con <- lm(GDP_gg ~ `2009`, data = data)
 summary(beta_con)
 
 top_gdp_gg <- data %>%
-  group_by(Subregion) %>%
+  group_by(ColorMap) %>%
   top_n(3, GDP_gg) %>%
+  filter(!ColorMap == "Greece") %>% 
   ungroup()
 
-# Find the bottom 3 GDP_gg values specifically for the "EU Candidates" subregion
 top_log_2009 <- data %>%
-  filter(Subregion == "Central-Eastern Europe") %>% 
+  filter(ColorMap == "Central-Eastern Europe") %>% 
   top_n(3, `2009`) %>%
   ungroup() %>% 
   slice(1:3)
 
-# Combine the top 3 from all subregions and bottom 3 from "EU Candidates"
 highlighted_gdp_gg <- bind_rows(top_gdp_gg, top_log_2009)
 
 beta <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
-  geom_point(aes(color = Color_Group)) +
+  geom_point(aes(color = ColorMap)) +
   scale_color_manual(values = c("Greece" = "red", 
                                 "Central-Eastern Europe" = "#fc8d62", 
                                 "Western Europe" = "#66c2a5", 
@@ -74,4 +81,15 @@ ggplot(sigma_convergence, aes(x = Year, y = sd_gdp)) +
   scale_x_continuous(breaks = seq(min(dataset$Year), max(dataset$Year), by = 1))
 
 
+# Spatial Autocorrelation --------
+### GLOBAL Moran's I ###
+dataset_moran <- dataset %>% 
+  filter(Year == 2009)
+moran.test(dataset_moran$GDP_growth, listw = W, alternative = "greater", 
+           randomisation = FALSE)
+moran.plot(dataset_moran$GDP_growth, listw = W)
+moran.mc(dataset_moran$GDP_growth, listw = W, alternative = "greater", nsim = 100)
+
+
+# SAVING
 ggsave("plot_beta.png", plot = beta, device = "png")

@@ -7,25 +7,34 @@ source("00_code/__functions.R")
 #LOADING DATA
 dataset1 <- readRDS("03_final-input/dataset_amelia.rds")
 dataset2 <- readRDS("03_final-input/dataset_mice.rds")
+geom <- readRDS("03_final-input/geometries.rds")
 
-datas_complete <- dataset1 %>%
-  mutate(NUTS_Year = paste0(NUTS, substr(as.character(Year), nchar(as.character(Year)) - 1, nchar(as.character(Year)))),
-         "CEE#Capital" = CEE*Capital,
-         "Candidates#Capital" = Candidates*Capital) %>% 
+# Running test on subset basic
+datas_base <- dataset1 %>%
+  mutate(NUTS_Year = paste0(NUTS , "_", as.character(Year))) %>% 
   column_to_rownames(var = "NUTS_Year") %>%
-  select(-c(Name, Year, NUTS, 50:85)) %>% 
-  select(GDP_growth, GDP_capita, everything())
+  select(-c(Name, Year, NUTS, 50:85, Unemployment_rate,
+            #Because still to double check real/nominal nature
+            Wage_EUR, contains("Prodx"), GFCF_share,
+            #risk overfitting
+            Island, Coastal, Objective_1))
 
-datas_intermediate <- datas_complete %>% 
-  select(-c("CEE#Capital", "Candidates#Capital"))
+#datas_mat <- as.matrix(datas_complete)
 
-datas_base <- datas_complete %>% 
-  select(-c(CEE, Candidates, "CEE#Capital", "Candidates#Capital"))
+mfls_base = bms(datas_base, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd", user.int=FALSE)
+coef(mfls_base, exact=TRUE)
 
-mfls1 = bms(datas_base, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd", user.int=FALSE)
-mfls2 = bms(datas_intermediate, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd", user.int=FALSE)
-mfls3 = bms(datas_complete, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd.int", user.int=FALSE)
+# Running test fixed effects
+datas_fix <- dataset1 %>%
+  mutate(NUTS_Year = paste0(NUTS , "_", as.character(Year))) %>% 
+  column_to_rownames(var = "NUTS_Year") %>%
+  select(-c(Name, Year, NUTS, Unemployment_rate, France,
+            #Because still to double check real/nominal nature
+            Wage_EUR, contains("Prodx"), GFCF_share,
+            #risk overfitting
+            Island, Coastal, Objective_1))
 
-coef(mfls1,exact=TRUE)
-coef(mfls2,exact=TRUE)
-coef(mfls3,exact=TRUE)
+#datas_mat <- as.matrix(datas_complete)
+
+mfls_fix = bms(datas_run, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd", user.int=FALSE)
+coef(mfls_fix, exact=TRUE)

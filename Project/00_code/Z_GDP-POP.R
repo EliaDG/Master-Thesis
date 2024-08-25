@@ -36,7 +36,7 @@ GDP_def_2009 <- GDP_def_2015 %>%
                values_to = "Deflator_2009")
 
 list <- list(GDP_ardeco, GDP_def_2015, GDP_def_2009)
-GDP_EU_final <- Reduce(function(x, y) merge(x, y, by = c("NUTS", "Name", "Year"), all.x = TRUE), list) %>% 
+GDP_EU_final <- Reduce(function(x, y) full_join(x, y, by = c("NUTS", "Name", "Year")), list) %>% 
   mutate(GDP_EUR_2009 = GDP_EUR/`Deflator_2009`*100)
 
 # GDP Extra ----
@@ -84,7 +84,7 @@ Pop_ardeco <- SNPTD_Population %>%
   pivot_longer(cols = -c("NUTS", "Name"), 
                names_to = "Year", 
                values_to = "Population_abs") %>%  # People
-  group_by(Name, NUTS) %>%
+  group_by(NUTS) %>%
   mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
   ungroup()
 
@@ -97,7 +97,7 @@ Population_MD_XK <- Population_extra %>%
                names_to = "Year", 
                values_to = "Population_abs")%>%
   mutate(Population_abs = Population_abs*1000) %>% 
-  group_by(Name, NUTS) %>%
+  group_by(NUTS) %>%
   mutate(Pop_growth = (Population_abs - lag(Population_abs)) / lag(Population_abs)) %>% 
   ungroup()
 

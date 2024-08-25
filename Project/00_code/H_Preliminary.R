@@ -47,7 +47,7 @@ top_log_2009 <- data %>%
 highlighted_gdp_gg <- bind_rows(top_gdp_gg, top_log_2009)
 
 beta <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
-  geom_point(aes(color = ColorMap)) +
+  geom_point(aes(color = ColorMap), size = 4) +  # Increase point size
   scale_color_manual(values = c("Greece" = "red", 
                                 "Central-Eastern Europe" = "#fc8d62", 
                                 "Western Europe" = "#66c2a5", 
@@ -55,30 +55,32 @@ beta <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
                      name = "Legend:") +
   geom_smooth(method = "lm", se = TRUE, color = "blue") +
   geom_text(data = highlighted_gdp_gg, aes(label = NUTS, fontface = "bold"), vjust = 0.2, hjust = -0.2) +
-  labs(title = "Beta Convergence (2009-2019)",
-       x = "Log of GDP per Capita in 2009",
+  labs(x = "Log of GDP per Capita in 2009",
        y = "Growth Rate of GDP per Capita") +
   theme_minimal() +
   theme(panel.background = element_rect(fill = "white"),
+        axis.text = element_text(size = 14),  # Increase axis text size
+        axis.title = element_text(size = 16, face = "bold"),  # Increase axis title size
         title = element_text(face = "bold", size = 14),
-        legend.position = c(0.20, 0.15),
+        legend.position = c(0.15, 0.15),
         legend.background = element_rect(fill = "white", color = "black"),
         legend.box.background = element_rect(fill = "white", color = "black"),
-        legend.title = element_text(face = "bold", size = 12),
-        legend.text = element_text(size = 12))
+        legend.title = element_text(face = "bold", size = 14),  # Increase legend title font size
+        legend.text = element_text(size = 14))  # Increase legend text size
 
-sigma_convergence <- dataset %>%
-  group_by(Year) %>%
-  summarize(sd_gdp = sd(GDP_capita),
-            var_gdp = var(GDP_capita))
-ggplot(sigma_convergence, aes(x = Year, y = sd_gdp)) +
-  geom_line(color = "blue") +
-  geom_point(color = "red") +
-  labs(title = "Sigma Convergence",
-       x = "Year",
-       y = "Standard Deviation of GDP per Capita") +
-  theme_minimal() +
-  scale_x_continuous(breaks = seq(min(dataset$Year), max(dataset$Year), by = 1))
+
+# sigma_convergence <- dataset %>%
+#   group_by(Year) %>%
+#   summarize(sd_gdp = sd(GDP_capita),
+#             var_gdp = var(GDP_capita))
+# ggplot(sigma_convergence, aes(x = Year, y = sd_gdp)) +
+#   geom_line(color = "blue") +
+#   geom_point(color = "red") +
+#   labs(title = "Sigma Convergence",
+#        x = "Year",
+#        y = "Standard Deviation of GDP per Capita") +
+#   theme_minimal() +
+#   scale_x_continuous(breaks = seq(min(dataset$Year), max(dataset$Year), by = 1))
 
 
 # Spatial Autocorrelation --------

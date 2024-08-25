@@ -125,3 +125,32 @@ update_w_queen <- function(W.queen, region_pairs, value_pairs) {
   
   return(W.queen)
 }
+
+modify_NUTS <- function(nuts_code) {
+  gsub("([A-Za-z]+)([0-9]+)", "\\1-\\2", nuts_code)
+}
+
+panel_unstack= function(stackeddata, tstep=NULL) {
+  bigT=nrow(stackeddata);K=ncol(stackeddata);
+  if (is.null(tstep)) tstep=bigT
+  X1=aperm(array(as.vector(t(as.matrix(stackeddata))),dim=c(K,tstep,bigT/tstep)), perm=c(2,1,3))
+  try(dimnames(X1)[[1]] <-  unique(sapply(strsplit(rownames(stackeddata),"_"),
+                                          function(x) x[[2]])), silent=TRUE)
+  try(dimnames(X1)[[2]] <-  colnames(stackeddata), silent=TRUE)
+  try(dimnames(X1)[[3]] <-  unique(sapply(strsplit(rownames(stackeddata),"_"),
+                                          function(x) x[[1]])), silent=TRUE)
+  return(X1)
+}
+
+panel_stack = function(array3d) {
+  x1= apply(array3d,2,rbind)
+  try(rownames(x1) <-  as.vector(sapply(dimnames(array3d)[[3]],
+                                        FUN=function(x) paste(x, dimnames(array3d)[[1]], sep="_"))), silent=TRUE)
+  return(as.data.frame(x1))
+}
+
+demean = function(x, margin) {
+  if (!is.array(x)) stop("x must be an array/matrix")
+  otherdims=(1:length(dim(x)))[-margin]
+  sweep(x,otherdims,apply(x,otherdims,mean))
+}

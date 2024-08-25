@@ -5,7 +5,7 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #LOADING DATA
-dataset <- readRDS("03_final-input/dataset.rds")
+dataset <- read_csv("03_final-input/dataset.csv")
 glimpse(dataset)
 summary(dataset)
 
@@ -22,10 +22,10 @@ data <- dataset %>%
   mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log)) %>%
   rename(Labor_Prodx = Labor_Productivity_abs) %>%
   as.data.frame() %>% 
-  select(-c(50:85))
+  select(-c(35:70))
 
 data_country <- dataset %>% 
-  select(c(NUTS, Year, 50:85))
+  select(c(NUTS, Year, 35:70))
 
 #Imputation ----------
 doParallel::registerDoParallel()
@@ -44,19 +44,18 @@ for (variable in names(data_amelia$imputations[[1]])) {
 medians_data_amelia <- as.data.frame(medians_data_amelia)
 
 predictormatrix<-quickpred(data,
-                           include = c("Pop_growth", "Labor_Prodx", "Wage_EUR", "GDP_capita", 
-                                       "Activity_rate", "NEET_share", "Life_exp", "Fertility_rate", 
-                                       "Pop_edu_1", "Pop_edu_2", "Pop_edu_3", "Employment_rate", 
-                                       "Unemployment_rate", "Migration_rate" ,"Prodx_A", "Prodx_B.E", "Prodx_F", 
-                                       "Prodx_G.I", "Prodx_J", "Prodx_K", "Prodx_L.M.N", 
-                                       "Prodx_O.Q", "Prodx_R.U", "inv_rate", "GFCF_share", 
-                                       "GVA_A", "GVA_B.E", "GVA_F", "GVA_G.I", 
-                                       "GVA_J", "GVA_K", "GVA_L.M.N", "GVA_O.Q", 
-                                       "GVA_R.U", "Output_density", 
-                                       "Employment_density", "Population_density", "Dist_BRUX",
-                                       "Candidates", "CEE", "Capital", "Coastal", "Island", "Objective_1", "Euro"),
+                           include = c("GDP_growth", "Labor_Prodx", "Wage_EUR", 
+                                       "Activity_rate", "NEET_share", "Life_exp", 
+                                       "Fertility_rate", "Pop_edu_1", "Pop_edu_2", 
+                                       "Pop_edu_3", "inv_rate", "GVA_primary", 
+                                       "GVA_services", "GVA_public", "GFCF_share", 
+                                       "GDP_capita", "Pop_growth", "Employment_rate", 
+                                       "Unemployment_rate", "Migration_rate", 
+                                       "Candidates", "CEE", "Capital", "Coastal", 
+                                       "Island", "Objective_1", "Euro", "Output_density",
+                                       "Employment_density", "Population_density", "Dist_BRUX"),
                            exclude = c("NUTS", "Name", "Year"),
-                           mincor = 0.6)
+                           mincor = 0.7)
 
 doParallel::registerDoParallel()
 data_mice <- mice(data, m = 5,
@@ -79,9 +78,7 @@ missing_indices <- is.na(data)
 medians_data_mice[missing_indices] <- medians_imputed[missing_indices]
 columns_to_convert <- c("Labor_Prodx", "Activity_rate", "NEET_share", "Life_exp", 
                         "Fertility_rate", "Pop_edu_1", "Pop_edu_2", "Pop_edu_3", 
-                        "Employment_rate", "Unemployment_rate", "Prodx_A", 
-                        "Prodx_B.E", "Prodx_F", "Prodx_G.I", "Prodx_J", "Prodx_K", 
-                        "Prodx_L.M.N", "Prodx_O.Q", "Prodx_R.U", "GVA_K", 
+                        "Employment_rate", "Unemployment_rate", "GVA_services",
                         "Employment_density")
 
 # Convert the specified columns to numeric
@@ -94,8 +91,8 @@ dataset_mice <- medians_data_mice %>%
   full_join(data_country)
 
 #SAVING -----------
-saveRDS(dataset_amelia, "03_final-input/dataset_amelia.rds")
-saveRDS(dataset_mice, "03_final-input/dataset_mice.rds")
+write.csv(dataset_amelia, file = here("03_final-input", "dataset_amelia.csv"), row.names = FALSE)
+write.csv(dataset_mice, file = here("03_final-input", "dataset_mice.csv"), row.names = FALSE)
 
 # Appendix
 # mean_data_amelia <- list()

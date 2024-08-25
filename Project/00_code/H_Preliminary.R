@@ -5,12 +5,13 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #LOADING DATA
-dataset <- readRDS("03_final-input/dataset_amelia.rds")
+dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
+dataset_mice <- read_csv("03_final-input/dataset_mice.csv")
 geom <- readRDS("03_final-input/geometries.rds")
 W <- readRDS("03_final-input/idw_listw.rds")
 
-# Convergence Analysis ------
-data <- dataset %>% 
+# Convergence Analysis - Amelia ------
+data <- dataset_amelia %>% 
   select(NUTS, Name, Year, GDP_capita) %>%
   pivot_longer(cols = -c(NUTS, Name, Year),
                names_to = "Series",
@@ -59,17 +60,16 @@ beta <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
        y = "Growth Rate of GDP per Capita") +
   theme_minimal() +
   theme(panel.background = element_rect(fill = "white"),
-        axis.text = element_text(size = 14),  # Increase axis text size
-        axis.title = element_text(size = 16, face = "bold"),  # Increase axis title size
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 16, face = "bold"),
         title = element_text(face = "bold", size = 14),
         legend.position = c(0.15, 0.15),
         legend.background = element_rect(fill = "white", color = "black"),
         legend.box.background = element_rect(fill = "white", color = "black"),
-        legend.title = element_text(face = "bold", size = 14),  # Increase legend title font size
-        legend.text = element_text(size = 14))  # Increase legend text size
+        legend.title = element_text(face = "bold", size = 14),
+        legend.text = element_text(size = 14))
 
-
-# sigma_convergence <- dataset %>%
+# sigma_convergence <- dataset_amelia %>%
 #   group_by(Year) %>%
 #   summarize(sd_gdp = sd(GDP_capita),
 #             var_gdp = var(GDP_capita))
@@ -85,13 +85,12 @@ beta <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
 
 # Spatial Autocorrelation --------
 ### GLOBAL Moran's I ###
-dataset_moran <- dataset %>% 
+dataset_moran <- dataset_amelia %>% 
   filter(Year == 2009)
 moran.test(dataset_moran$GDP_growth, listw = W, alternative = "greater", 
            randomisation = FALSE)
-moran.plot(dataset_moran$GDP_growth, listw = W)
 moran.mc(dataset_moran$GDP_growth, listw = W, alternative = "greater", nsim = 100)
 
 
 # SAVING
-ggsave("plot_beta.png", plot = beta, device = "png")
+# ggsave("plot_beta.png", plot = beta, device = "png")

@@ -5,36 +5,39 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #LOADING DATA
-dataset1 <- readRDS("03_final-input/dataset_amelia.rds")
-dataset2 <- readRDS("03_final-input/dataset_mice.rds")
+dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
+dataset_mice <- read_csv("03_final-input/dataset_mice.csv")
 geom <- readRDS("03_final-input/geometries.rds")
 
 # Running test on subset basic
-datas_base <- dataset1 %>%
+datas_base <- dataset_amelia %>%
   mutate(NUTS_Year = paste0(NUTS , "_", as.character(Year))) %>% 
   column_to_rownames(var = "NUTS_Year") %>%
-  select(-c(Name, Year, NUTS, 50:85, Unemployment_rate,
+  select(-starts_with("GVA_") | matches("GVA_primary|GVA_services|GVA_public"),
+         -c(Name, Year, NUTS, 35:70, Unemployment_rate, Life_exp, Fertility_rate,
             #Because still to double check real/nominal nature
             Wage_EUR, contains("Prodx"), GFCF_share,
             #risk overfitting
-            Island, Coastal, Objective_1))
+            Island, Coastal, Objective_1, Euro))
 
 #datas_mat <- as.matrix(datas_complete)
 
-mfls_base = bms(datas_base, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd", user.int=FALSE)
+mfls_base = bms(datas_base, burn=2000000, iter=3000000,
+                g="BRIC", mprior="random", mcmc="bd", force.full.ols = TRUE, 
+                user.int=FALSE, g.stats = FALSE)
 coef(mfls_base, exact=TRUE)
 
 # Running test fixed effects
-datas_fix <- dataset1 %>%
+datas_fix <- dataset_amelia %>%
   mutate(NUTS_Year = paste0(NUTS , "_", as.character(Year))) %>% 
   column_to_rownames(var = "NUTS_Year") %>%
-  select(-c(Name, Year, NUTS, Unemployment_rate, France,
+  select(-starts_with("GVA_") | matches("GVA_primary|GVA_services|GVA_public"),
+         -c(Name, Year, NUTS, Unemployment_rate, Albania,
             #Because still to double check real/nominal nature
             Wage_EUR, contains("Prodx"), GFCF_share,
             #risk overfitting
-            Island, Coastal, Objective_1))
+            Island, Coastal, Objective_1, Euro, Life_exp, Fertility_rate))
 
-#datas_mat <- as.matrix(datas_complete)
-
-mfls_fix = bms(datas_run, burn=2000000, iter=3000000, g="BRIC", mprior="random", mcmc="bd", user.int=FALSE)
+mfls_fix = bms(datas_fix, burn=2000000, iter=3000000, g="BRIC", mprior="random", g.stats = FALSE,
+               mcmc="bd", force.full.ols = TRUE, user.int=FALSE)
 coef(mfls_fix, exact=TRUE)

@@ -42,6 +42,7 @@ NUTS2_2013 <- get_eurostat_geospatial(
   select(-2) %>% 
   filter(NUTS %in% c("UKM3", "UKM2", "IE01", "IE02"))
 
+# Geometries processing ------
 NUTS2_extra_merged <- NUTS2_2021 %>%
   filter(NUTS %in% c("LT01", "LT02",
                      "UKI5", "UKI6", "UKI7",
@@ -67,6 +68,8 @@ geom_NUTS2 <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BIH) %
   filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
                       "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20"))
 
+
+# Spatial relateed variables -----
 dataset_complete <- dataset %>%
   filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
                       "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>% 
@@ -170,9 +173,9 @@ one_hot <- model.matrix(~ Country - 1, data = encoded_dataset)
 colnames(one_hot) <- gsub("Country", "", colnames(one_hot))
 encoded_dataset <- cbind(encoded_dataset, one_hot)
 encoded_dataset <- encoded_dataset[, !(names(encoded_dataset) %in% c("Country"))]
-
+# All countries are hot-one-encoded counted!
 colnames(encoded_dataset) <- make.names(colnames(encoded_dataset))
 
 #SAVING
-saveRDS(encoded_dataset, "03_final-input/dataset.rds")
+write.csv(encoded_dataset, file = here("03_final-input", "dataset.csv"), row.names = FALSE)
 saveRDS(geom_NUTS2, "03_final-input/geometries.rds")

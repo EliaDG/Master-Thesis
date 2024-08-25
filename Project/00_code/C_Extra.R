@@ -33,8 +33,7 @@ Emp_Nace <- emp_nace %>%
   pivot_longer(cols = -c("NUTS", "Name", "NACE"), 
                names_to = "Year", 
                values_to = "Emp_Nace_abs") %>%
-  mutate(Emp_Nace_abs = Emp_Nace_abs*1000,
-         Emp_Nace_abs = if_else(NUTS == "XK00" & NACE == "L" & Year %in% as.character(2000:2011), NA_real_, Emp_Nace_abs)) %>% #This is necessary because of change in reporting between NACE 1 & 2
+  mutate(Emp_Nace_abs = Emp_Nace_abs*1000) %>%
   pivot_wider(names_from = NACE,
               values_from = Emp_Nace_abs,
               names_prefix = "EMP_NACE_")

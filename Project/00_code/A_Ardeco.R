@@ -1,8 +1,8 @@
 getwd()
 
 #NOTICE
-#Although here the Ardeco Datasets will be mainly cleaned and prepared, it also
-#includes additional sources to ensure completeness from: 
+# Although here the Ardeco Datasets will be mainly cleaned and prepared, it also
+# includes additional sources to ensure completeness from: 
 # - Eurostat for Türkiye,
 # - MONSTAT National Statistical office for Montenegro,
 # - WIIW for Albania
@@ -98,7 +98,6 @@ Emp_Nace_Ardeco <- SNETZ %>%
 Emp_Nace_TR <- read_excel("01_data-input/Eurostat/lfst_r_lfe2en2_Turkey.xlsx", sheet = "Data_clean", na = ":")
 Emp_Nace_ME <- read_excel("01_data-input/National/ME/NACE_Employment_ME.xlsx", na = ":")
 Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".")
-Emp_Nace_AL <- read_excel("01_data-input/wiiw/emp.xlsx", sheet = "Data_clean_AL", na = ".")
 Wage_AL <- read_excel("01_data-input/wiiw/wages1.xlsx", sheet = "Data_clean", na = ".")
 
 Emp_Nace_TR <- Emp_Nace_TR %>%
@@ -144,7 +143,7 @@ Wage <- full_join(Wage_AL, Wage_ardeco, by = c("NUTS", "Name", "Year")) %>%
   select(NUTS, Name, Year, Wage_EUR)
 
 ardeco_list <- list(Emp, GFCF_EUR, GVA, GVA_Nace, Migr, Prod, Unemp, Wage)
-ardeco_data <- Reduce(function(x, y) merge(x, y, by = c("NUTS", "Name", "Year"), all.x = TRUE), ardeco_list)
+ardeco_data <- Reduce(function(x, y) full_join(x, y, by = c("NUTS", "Name", "Year")), ardeco_list)
 
 ardeco <- ardeco_data %>%
   full_join(Emp_Nace, by = c("NUTS", "Year")) %>% # Second round of merging because of Name discrepancy

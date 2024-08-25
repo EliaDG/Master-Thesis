@@ -43,14 +43,15 @@ for (variable in names(data_amelia$imputations[[1]])) {
 }
 medians_data_amelia <- as.data.frame(medians_data_amelia)
 
+#Mice process
 predictormatrix<-quickpred(data,
                            include = c("GDP_growth", "Labor_Prodx", "Wage_EUR", 
                                        "Activity_rate", "NEET_share", "Life_exp", 
                                        "Fertility_rate", "Pop_edu_1", "Pop_edu_2", 
                                        "Pop_edu_3", "inv_rate", "GVA_primary", 
                                        "GVA_services", "GVA_public", "GFCF_share", 
-                                       "GDP_capita", "Pop_growth", "Employment_rate", 
-                                       "Unemployment_rate", "Migration_rate", 
+                                       "GDP_capita", "Pop_growth", "emp_rate", 
+                                       "unemp_rate", "Migration_rate", 
                                        "Candidates", "CEE", "Capital", "Coastal", 
                                        "Island", "Objective_1", "Euro", "Output_density",
                                        "Employment_density", "Population_density", "Dist_BRUX"),
@@ -78,8 +79,7 @@ missing_indices <- is.na(data)
 medians_data_mice[missing_indices] <- medians_imputed[missing_indices]
 columns_to_convert <- c("Labor_Prodx", "Activity_rate", "NEET_share", "Life_exp", 
                         "Fertility_rate", "Pop_edu_1", "Pop_edu_2", "Pop_edu_3", 
-                        "Employment_rate", "Unemployment_rate", "GVA_services",
-                        "Employment_density")
+                        "emp_rate", "unemp_rate", "GVA_services", "Employment_density")
 
 # Convert the specified columns to numeric
 medians_data_mice <- medians_data_mice %>%

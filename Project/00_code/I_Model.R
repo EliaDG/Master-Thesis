@@ -13,31 +13,30 @@ geom <- readRDS("03_final-input/geometries.rds")
 datas_base <- dataset_amelia %>%
   mutate(NUTS_Year = paste0(NUTS , "_", as.character(Year))) %>% 
   column_to_rownames(var = "NUTS_Year") %>%
-  select(-starts_with("GVA_") | matches("GVA_primary|GVA_services|GVA_public"),
-         -c(Name, Year, NUTS, 35:70, Unemployment_rate, Life_exp, Fertility_rate,
+  select(-c(Name, Year, NUTS, 35:70,
             #Because still to double check real/nominal nature
-            Wage_EUR, contains("Prodx"), GFCF_share,
-            #risk overfitting
-            Island, Coastal, Objective_1, Euro))
+            Wage_EUR, GFCF_share, Labor_Prodx))
 
-#datas_mat <- as.matrix(datas_complete)
+# cor_matrix <- cor(datas_base)
+# corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.7, tl.col = "black", diag = FALSE)
+# high_corr_columns <- findCorrelation(cor_matrix, cutoff = 0.8)
+# datas_uncorr <- select(datas_base, -high_corr_columns)
 
+doParallel::registerDoParallel()
 mfls_base = bms(datas_base, burn=2000000, iter=3000000,
                 g="BRIC", mprior="random", mcmc="bd", force.full.ols = TRUE, 
-                user.int=FALSE, g.stats = FALSE)
+                user.int=TRUE)
 coef(mfls_base, exact=TRUE)
 
 # Running test fixed effects
 datas_fix <- dataset_amelia %>%
   mutate(NUTS_Year = paste0(NUTS , "_", as.character(Year))) %>% 
   column_to_rownames(var = "NUTS_Year") %>%
-  select(-starts_with("GVA_") | matches("GVA_primary|GVA_services|GVA_public"),
-         -c(Name, Year, NUTS, Unemployment_rate, Albania,
+  select(-c(Name, Year, NUTS, Albania,
             #Because still to double check real/nominal nature
-            Wage_EUR, contains("Prodx"), GFCF_share,
-            #risk overfitting
-            Island, Coastal, Objective_1, Euro, Life_exp, Fertility_rate))
+            Wage_EUR, GFCF_share, Labor_Prodx))
 
-mfls_fix = bms(datas_fix, burn=2000000, iter=3000000, g="BRIC", mprior="random", g.stats = FALSE,
-               mcmc="bd", force.full.ols = TRUE, user.int=FALSE)
+doParallel::registerDoParallel()
+mfls_fix = bms(datas_fix, burn=2000000, iter=3000000, g="BRIC", mprior="random",
+               mcmc="bd", force.full.ols = TRUE, user.int= TRUE)
 coef(mfls_fix, exact=TRUE)

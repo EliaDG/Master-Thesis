@@ -5,19 +5,13 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #LOADING DATA
-dataset <- readRDS("03_final-input/dataset.rds")
 geom <- readRDS("03_final-input/geometries.rds")
-data <- dataset %>% 
-  filter(Year == 2015) %>%
-  select(NUTS, Name) %>% 
-  full_join(geom, by = "NUTS") %>% 
-  st_as_sf()
 
 # Spatial Matrix----
-queen_nb <- poly2nb(data, row.names=data$NUTS, queen=TRUE)
+queen_nb <- poly2nb(geom, row.names=geom$NUTS, queen=TRUE)
 queen_listw <- nb2listw(queen_nb, style = "B", zero.policy=TRUE)
 queen_matrix <- listw2mat(queen_listw)
-colnames(queen_matrix) <- data$NUTS
+colnames(queen_matrix) <- geom$NUTS
 
 region_pairs <- list(
   c("BA00", "ME00"), # Bosnia and Herzegovina, Crna Gora
@@ -54,21 +48,21 @@ value_pairs <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 new_W_matrix <- update_w_queen(queen_matrix, region_pairs, value_pairs)
-queen_listw <- mat2listw(new_W_matrix, style = "B", row.names = data$NUTS, zero.policy = TRUE)
+queen_listw <- mat2listw(new_W_matrix, style = "B", row.names = geom$NUTS, zero.policy = TRUE)
 queen_nb <- queen_listw$neighbours
-attr(queen_nb, "region.id") <- row.names(data)
+# attr(queen_nb, "region.id") <- row.names(geom)
 
-coords <- st_coordinates(st_centroid(data$geometry))
+coords <- st_coordinates(st_centroid(geom$geometry))
 dist <- nbdists(queen_nb, coords, longlat = TRUE)
 idw <- lapply(dist, function(x) 1/(x))
 idw_2 <- lapply(dist, function(x) 1/(x^2))
-region_names <- attr(queen_nb, "region.id")
-
-idw_named <- setNames(idw, region_names)
-idw_2_named <- setNames(idw_2, region_names)
-
-idw_listw <- nb2listw(queen_nb, glist = idw_named, style = "B", zero.policy = TRUE)
-idw_2_listw <- nb2listw(queen_nb, glist = idw_2_named, style = "B", zero.policy = TRUE)
+# region_names <- attr(queen_nb, "region.id")
+# 
+# idw_named <- setNames(idw, region_names)
+# idw_2_named <- setNames(idw_2, region_names)
+#
+# idw_listw <- nb2listw(queen_nb, glist = idw_named, style = "B", zero.policy = TRUE)
+# idw_2_listw <- nb2listw(queen_nb, glist = idw_2_named, style = "B", zero.policy = TRUE)
 
 # # Turn list into matrix -----
 # # Number of regions
@@ -104,19 +98,19 @@ idw_2_listw <- nb2listw(queen_nb, glist = idw_2_named, style = "B", zero.policy 
 #   idw_2_matrix[region, region_names[neighbors]] <- idw_2_values
 # }
 # 
-# idw_listw <- mat2listw(idw_matrix, row.names = data$NUTS, zero.policy = TRUE)
-# idw_2_listw <- mat2listw(idw_2_matrix, row.names = data$NUTS, zero.policy = TRUE)
+# idw_listw <- mat2listw(idw_matrix, row.names = geom$NUTS, zero.policy = TRUE)
+# idw_2_listw <- mat2listw(idw_2_matrix, row.names = geom$NUTS, zero.policy = TRUE)
 
 #SAVING
 # saveRDS(idw_matrix, file = "03_final-input/idw_matrix.rds")
 # saveRDS(idw_2_matrix, file = "03_final-input/idw_2_matrix.rds")
-saveRDS(idw_listw, file = "03_final-input/idw_listw.rds")
-saveRDS(idw_2_listw, file = "03_final-input/idw_2_listw.rds")
+saveRDS(idw, file = "03_final-input/idw_list.rds")
+saveRDS(idw_2, file = "03_final-input/idw_2_list.rds")
 
 # Appendix
-queen_lines <- listw2lines(queen_listw, coords = st_centroid(data$geometry))
+queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))
 
-ggplot(data = data) +
+ggplot(data = geom) +
   geom_sf(color = "black") +
   theme_light() +
   geom_sf(data = queen_lines, color = "red", size = 0.8)

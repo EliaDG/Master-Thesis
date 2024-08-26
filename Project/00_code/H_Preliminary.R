@@ -8,7 +8,7 @@ source("00_code/__functions.R")
 dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
 dataset_mice <- read_csv("03_final-input/dataset_mice.csv")
 geom <- readRDS("03_final-input/geometries.rds")
-W <- readRDS("03_final-input/idw_listw.rds")
+W <- readRDS("03_final-input/idw_list.rds")
 
 # Convergence Analysis - Amelia ------
 data <- dataset_amelia %>% 

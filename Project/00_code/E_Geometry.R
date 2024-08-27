@@ -163,19 +163,13 @@ Dist_BRUX <- geom_NUTS2 %>%
 
 dataset_final <- dataset_complete %>% 
   full_join(Dist_BRUX, by = "NUTS") %>%
-  mutate(Country = as.factor(Country),
-         across(c(Capital, Coastal, Island, Objective_1, Euro, CEE, Candidates),
+  mutate(across(c(Capital, Coastal, Island, Objective_1, Euro, CEE, Candidates),
                 ~ as.numeric(ifelse(. == "Yes", 1, ifelse(. == "No", 0, .))))) %>%
-  st_set_geometry(NULL)
+  st_set_geometry(NULL) %>% 
+  as.data.frame()
 
-encoded_dataset <- dataset_final
-one_hot <- model.matrix(~ Country - 1, data = encoded_dataset)
-colnames(one_hot) <- gsub("Country", "", colnames(one_hot))
-encoded_dataset <- cbind(encoded_dataset, one_hot)
-encoded_dataset <- encoded_dataset[, !(names(encoded_dataset) %in% c("Country"))]
-# All countries are hot-one-encoded counted!
-colnames(encoded_dataset) <- make.names(colnames(encoded_dataset))
+colnames(dataset_final) <- make.names(colnames(dataset_final))
 
 #SAVING
-write.csv(encoded_dataset, file = here("03_final-input", "dataset.csv"), row.names = FALSE)
+write.csv(dataset_final, file = here("03_final-input", "dataset.csv"), row.names = FALSE)
 saveRDS(geom_NUTS2, "03_final-input/geometries.rds")

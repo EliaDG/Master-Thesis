@@ -4,18 +4,11 @@ getwd()
 source("00_code/__packages.R")
 source("00_code/__functions.R")
 
-dataset <- readRDS("03_final-input/dataset.rds")
+dataset <- read_csv("03_final-input/dataset.csv")
 
 ## Overview ----
-length(unique(dataset$Country))
-ex1 <- dataset %>%
-  filter(Subregion == "EU Candidates")
-ex2 <- dataset %>%
-  filter(Subregion != "EU Candidates")
-length(unique(ex1$NUTS)) + length(unique(ex2$NUTS))
 core <- dataset %>% 
-  select(-c(Country, Dist_BRUX, Subregion, Capital, Euro, Coastal, Island, Beneficiary, EU_Member, GDP_growth)) %>%
-  st_set_geometry(NULL)
+  select(-c(Country, Dist_BRUX, Capital, Euro, Coastal, Island, Objective_1, GDP_growth))
 glimpse(core)
 total_observations <- nrow(core) * ncol(core)
 total_NAs <- sum(is.na(core))

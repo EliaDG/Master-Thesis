@@ -10,28 +10,24 @@ glimpse(dataset)
 summary(dataset)
 
 #Transformation --------------
-summary(dataset$Migration_rate)
-# hist(dataset$Migration_rate,
-#      main = "Histogram of Your Variable",
-#      xlab = "Your Variable",
-#      ylab = "Frequency",
-#      col = "lightblue",
-#      border = "black")
+summary(dataset$Pop_growth)
+hist(dataset$Pop_growth,
+     main = "Histogram of Your Variable",
+     xlab = "Your Variable",
+     ylab = "Frequency",
+     col = "lightblue",
+     border = "black")
 
 data <- dataset %>%
   mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log)) %>%
-  rename(Labor_Prodx = Labor_Productivity_abs) %>%
-  as.data.frame() %>% 
-  select(-c(35:70))
-
-data_country <- dataset %>% 
-  select(c(NUTS, Year, 35:70))
+  rename(Labor_Prodx = Labor_Productivity_abs) %>% 
+  as_data_frame()
 
 #Imputation ----------
 doParallel::registerDoParallel()
 data_amelia <- amelia(data, m = 5, ts = "Year", cs = "NUTS", polytime = 1,
                       noms = c("Candidates", "CEE", "Capital", "Coastal", "Island", "Objective_1", "Euro"),
-                      idvars = "Name")
+                      idvars = c("Name", "Country"))
 
 #plot(data_amelia)
 
@@ -55,15 +51,13 @@ predictormatrix<-quickpred(data,
                                        "Candidates", "CEE", "Capital", "Coastal", 
                                        "Island", "Objective_1", "Euro", "Output_density",
                                        "Employment_density", "Population_density", "Dist_BRUX"),
-                           exclude = c("NUTS", "Name", "Year"),
+                           exclude = c("NUTS", "Name", "Country", "Year"),
                            mincor = 0.7)
 
 doParallel::registerDoParallel()
 data_mice <- mice(data, m = 5,
                   predictorMatrix = predictormatrix,
                   method = 'pmm', maxit = 30, seed = 1105)
-# densityplot(data_mice)
-# plot(data_mice) #, which = "Prodx_J"
 
 imputed_datasets <- lapply(1:5, function(i) complete(data_mice, i))
 imputed_array <- array(unlist(imputed_datasets), 
@@ -74,25 +68,20 @@ medians_imputed <- apply(imputed_array, c(1, 2), median)
 medians_imputed <- as.data.frame(medians_imputed)
 names(medians_imputed) <- names(data)
 
-medians_data_mice <- data
+medians_data_mice <- data %>% 
+  as.data.frame()
 missing_indices <- is.na(data)
 medians_data_mice[missing_indices] <- medians_imputed[missing_indices]
+
 columns_to_convert <- c("Labor_Prodx", "Activity_rate", "NEET_share", "Life_exp", 
                         "Fertility_rate", "Pop_edu_1", "Pop_edu_2", "Pop_edu_3", 
                         "emp_rate", "unemp_rate", "GVA_services", "Employment_density")
-
-# Convert the specified columns to numeric
 medians_data_mice <- medians_data_mice %>%
   mutate_at(vars(one_of(columns_to_convert)), as.numeric)
 
-dataset_amelia <- medians_data_amelia %>% 
-  full_join(data_country)
-dataset_mice <- medians_data_mice %>% 
-  full_join(data_country)
-
 #SAVING -----------
-write.csv(dataset_amelia, file = here("03_final-input", "dataset_amelia.csv"), row.names = FALSE)
-write.csv(dataset_mice, file = here("03_final-input", "dataset_mice.csv"), row.names = FALSE)
+write.csv(medians_data_amelia, file = here("03_final-input", "dataset_amelia.csv"), row.names = FALSE)
+write.csv(medians_data_mice, file = here("03_final-input", "dataset_mice.csv"), row.names = FALSE)
 
 # Appendix
 # mean_data_amelia <- list()

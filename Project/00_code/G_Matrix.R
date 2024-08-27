@@ -50,19 +50,14 @@ value_pairs <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 new_W_matrix <- update_w_queen(queen_matrix, region_pairs, value_pairs)
 queen_listw <- mat2listw(new_W_matrix, style = "B", row.names = geom$NUTS, zero.policy = TRUE)
 queen_nb <- queen_listw$neighbours
-# attr(queen_nb, "region.id") <- row.names(geom)
 
 coords <- st_coordinates(st_centroid(geom$geometry))
 dist <- nbdists(queen_nb, coords, longlat = TRUE)
 idw <- lapply(dist, function(x) 1/(x))
 idw_2 <- lapply(dist, function(x) 1/(x^2))
-# region_names <- attr(queen_nb, "region.id")
-# 
-# idw_named <- setNames(idw, region_names)
-# idw_2_named <- setNames(idw_2, region_names)
-#
-# idw_listw <- nb2listw(queen_nb, glist = idw_named, style = "B", zero.policy = TRUE)
-# idw_2_listw <- nb2listw(queen_nb, glist = idw_2_named, style = "B", zero.policy = TRUE)
+
+idw_listw <- nb2listw(queen_nb, glist = idw, style = "B", zero.policy = TRUE)
+idw_2_listw <- nb2listw(queen_nb, glist = idw_2, style = "B", zero.policy = TRUE)
 
 # # Turn list into matrix -----
 # # Number of regions
@@ -104,8 +99,8 @@ idw_2 <- lapply(dist, function(x) 1/(x^2))
 #SAVING
 # saveRDS(idw_matrix, file = "03_final-input/idw_matrix.rds")
 # saveRDS(idw_2_matrix, file = "03_final-input/idw_2_matrix.rds")
-saveRDS(idw, file = "03_final-input/idw_list.rds")
-saveRDS(idw_2, file = "03_final-input/idw_2_list.rds")
+saveRDS(idw_listw, file = "03_final-input/idw.rds")
+saveRDS(idw_2_listw, file = "03_final-input/idw_2.rds")
 
 # Appendix
 queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))

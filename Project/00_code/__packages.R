@@ -34,4 +34,5 @@ p_load(tidyverse,
        mice,
        Amelia,
        corrplot,
-       caret)
+       caret,
+       spatBMS)

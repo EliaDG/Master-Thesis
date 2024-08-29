@@ -1,5 +1,11 @@
 getwd()
 
+#NOTICE
+# Although here the Eurostat Datasets will be mainly cleaned and prepared, it also
+# includes additional sources to ensure completeness from: 
+# - National Statistic of Serbia
+# - WDI/ILOSTAT/WiiW for Albania
+
 #DEPENDENCIES
 source("00_code/__packages.R")
 source("00_code/__functions.R")

@@ -12,6 +12,7 @@ extra <- read_csv("02_intermediary-input/extra_dataset.csv")
 cherry <- read_csv("02_intermediary-input/GDP-POP_dataset.csv")
 cream <- read_csv("02_intermediary-input/labour.csv")
 
+#Merging ------
 data_EU <- full_join(ardeco, eurostat) %>%
   mutate(inv_rate = GFCF_EUR / GVA_EUR,
          GVA_primary = (GVA_NACE_A+`GVA_NACE_B-E`+GVA_NACE_F)/GVA_EUR,
@@ -35,7 +36,7 @@ dataset <- full_join(data_EU, data_EXTRA) %>%
   full_join(cream) %>% 
   arrange(NUTS, Year) %>% 
   mutate(Country = as.character(sapply(NUTS, mapping_nuts)),
-         # Employment_rate = Employment_abs / Population_abs,
+         # Employment_rate = Employment_abs / Population_abs, #Decided to rely on direct % to avoid mistakes
          # Unemployment_rate = Unemployment_abs / Population_abs,
          Migration_rate = Migration_abs/Population_abs,
          GFCF_share = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GFCF_share, GFCF_EUR / GDP_EUR),

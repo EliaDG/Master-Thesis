@@ -1,5 +1,8 @@
 getwd()
 
+#NOTICE
+# Code for cleaning and preparing data for EU Candidates regions
+
 #DEPENDENCIES
 source("00_code/__packages.R")
 source("00_code/__functions.R")
@@ -16,7 +19,7 @@ WDI <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_extra
 
 Pop_edu <- read_csv("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU.csv", na = "..")
 
-#CLEANING
+#Cleaning ----
 Actrt <- activity_rate %>% 
   filter(!Name == "Albania") %>% 
   select(-c(3,4)) %>% 
@@ -124,7 +127,7 @@ WDI_data <- WDI %>%
          GFCF_share = GFCF_share/100) %>% 
   select(-Unempl_rate, -Labor_force_abs, -starts_with("ISCED_"), -starts_with("LF_edu_"))
 
-#Merging ----
+#Merging -----
 data_final <- list(Emp_Nace, GVA_Nace, GVA_NCU,
                    Actrt, Wages, Unemployment,
                    WDI_data)

@@ -13,6 +13,11 @@ queen_listw <- nb2listw(queen_nb, style = "B", zero.policy=TRUE)
 queen_matrix <- listw2mat(queen_listw)
 colnames(queen_matrix) <- geom$NUTS
 
+# Given that original shapefiles come from different sources not always neighboring regions
+# appear as such. I manually set them so, besides connecting islands and regions
+# where infrastructure has brought a tangible connection, and connecting the islands to at
+# least one region.
+
 region_pairs <- list(
   c("BA00", "ME00"), # Bosnia and Herzegovina, Crna Gora
   c("BA00", "RS21"), # Bosnia and Herzegovina, Region Šumadije i Zapadne Srbije
@@ -41,7 +46,7 @@ region_pairs <- list(
   c("FI1B", "EE00"), # Helsinki-Uusimaa, Eesti
   c("UKN0", "UKM7"), # Northern Ireland, Southern Scotland
   c("IE06", "UKD7"), # Eastern and Midland, Merseyside
-  c("EL62", "EL63")) # Forgotten islands of Greece
+  c("EL62", "EL63")) # Ionia Nisia, Dytiki Ellada
 
 value_pairs <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -59,7 +64,20 @@ idw_2 <- lapply(dist, function(x) 1/(x^2))
 idw_listw <- nb2listw(queen_nb, glist = idw, style = "B", zero.policy = TRUE)
 idw_2_listw <- nb2listw(queen_nb, glist = idw_2, style = "B", zero.policy = TRUE)
 
-# # Turn list into matrix -----
+# Visualization queen continuity network -------
+queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))
+ggplot(data = geom) +
+  geom_sf(color = "black") +
+  theme_light() +
+  geom_sf(data = queen_lines, color = "red", size = 0.8)
+#coord_sf(xlim = c(18, 23), ylim = c(43, 48)) to zoom in
+
+#SAVING
+saveRDS(idw_listw, file = "03_final-input/idw.rds")
+saveRDS(idw_2_listw, file = "03_final-input/idw_2.rds")
+
+# Appendix
+# # Turn list into matrix
 # # Number of regions
 # num_regions <- length(region_names)
 # 
@@ -95,18 +113,3 @@ idw_2_listw <- nb2listw(queen_nb, glist = idw_2, style = "B", zero.policy = TRUE
 # 
 # idw_listw <- mat2listw(idw_matrix, row.names = geom$NUTS, zero.policy = TRUE)
 # idw_2_listw <- mat2listw(idw_2_matrix, row.names = geom$NUTS, zero.policy = TRUE)
-
-#SAVING
-# saveRDS(idw_matrix, file = "03_final-input/idw_matrix.rds")
-# saveRDS(idw_2_matrix, file = "03_final-input/idw_2_matrix.rds")
-saveRDS(idw_listw, file = "03_final-input/idw.rds")
-saveRDS(idw_2_listw, file = "03_final-input/idw_2.rds")
-
-# Appendix
-queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))
-
-ggplot(data = geom) +
-  geom_sf(color = "black") +
-  theme_light() +
-  geom_sf(data = queen_lines, color = "red", size = 0.8)
-  #coord_sf(xlim = c(18, 23), ylim = c(43, 48))

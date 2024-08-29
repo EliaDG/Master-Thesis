@@ -91,6 +91,5 @@ moran.test(dataset_moran$GDP_growth, listw = W, alternative = "greater",
            randomisation = FALSE)
 moran.mc(dataset_moran$GDP_growth, listw = W, alternative = "greater", nsim = 100)
 
-
 # SAVING
-# ggsave("plot_beta.png", plot = beta, device = "png")
+ggsave("plot_beta.png", plot = beta, device = "png")

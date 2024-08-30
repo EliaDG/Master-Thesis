@@ -77,7 +77,7 @@ dataset_complete <- dataset %>%
   st_as_sf(crs = "WGS84") %>% 
   mutate(Area = as.numeric(st_area(geometry))/1e6,
          Candidates = ifelse(Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey"), "Yes", "No"),
-         CEE = ifelse(Country %in% c("Poland", "Czech Republic", "Slovakia", "Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus"), "Yes", "No"),
+         CEE = ifelse(Country %in% c("Poland", "Czech Republic", "Slovakia", "Slovenia","Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus"), "Yes", "No"),
          Capital = case_when(
            NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", 
                        "HR05", "HR04", "HU11", "IE02", "IE06", "ITI4", "LT01", "NL32", "PL91", "PT17", 

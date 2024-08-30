@@ -10,13 +10,13 @@ glimpse(dataset)
 summary(dataset)
 
 #Transformation --------------
-summary(dataset$Pop_growth)
-hist(dataset$Pop_growth,
-     main = "Histogram of Your Variable",
-     xlab = "Your Variable",
-     ylab = "Frequency",
-     col = "lightblue",
-     border = "black")
+# summary(dataset$Pop_growth)
+# hist(dataset$Pop_growth,
+#      main = "Histogram of Your Variable",
+#      xlab = "Your Variable",
+#      ylab = "Frequency",
+#      col = "lightblue",
+#      border = "black")
 
 data <- dataset %>%
   mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log)) %>%

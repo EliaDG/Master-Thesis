@@ -6,9 +6,6 @@ source("00_code/__functions.R")
 
 # LOADING DATA
 dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
-geom <- readRDS("03_final-input/geometries.rds")
-W <- readRDS("03_final-input/idw.rds")
-WL <- readRDS("03_final-input/Filter.rds")
 
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>% 
@@ -37,7 +34,10 @@ CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bu
 YF <- c("Y_2010", "Y_2011","Y_2012", "Y_2013", "Y_2014", 
         "Y_2015", "Y_2016", "Y_2017", "Y_2018", "Y_2019")
 
-TF <- c(CF,YF)
+JF <- c("GDP_capita", "Pop_edu_3", "Capital")
+
+PF <- c(JF,YF)
+TF <- c(CF,PF)
 
 # TEST: BASE MODEL -----
 datas_base <- data_encoded %>%
@@ -56,18 +56,27 @@ doParallel::registerDoParallel()
 mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", "CEE#Capital")], burn=2000000, iter=3000000,
                 g="BRIC", mprior="random", mcmc="bd", 
                 force.full.ols = TRUE, user.int=TRUE,
-                fixed.reg = YF)
-# coef(mfls_base, exact=TRUE)
-# estimates.bma(mfls_base, condi.coef = TRUE)
+                fixed.reg = PF)
 
 mfls_base2 = bms(datas_base[, !names(datas_base) == "CEE#Capital"], burn=2000000, iter=3000000,
                 g="BRIC", mprior="random", mcmc="bd", 
                 force.full.ols = TRUE, user.int=TRUE,
-                fixed.reg = YF)
+                fixed.reg = PF)
 
 mfls_base3 = bms(datas_base, burn=2000000, iter=3000000,
                 g="BRIC", mprior="random", mcmc="bd.int", 
                 force.full.ols = TRUE, user.int=TRUE)
+
+mfls_base4 = bms(datas_base[, !names(datas_base) == "CEE#Capital"], burn=2000000, iter=3000000,
+                 g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int=TRUE,
+                 fixed.reg = YF)
+
+mfls_base5 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Island", "Euro", "Objective_1", "Coastal", "Candidates", "CEE#Capital")], burn=2000000, iter=3000000,
+                 g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int=TRUE,
+                 fixed.reg = PF)
+
 
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
@@ -76,33 +85,32 @@ datas_fix <- data_encoded %>%
             #Because still to double check real/nominal nature
             Wage_EUR, Labor_Prodx))
 
-doParallel::registerDoParallel()
-mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% c("CEE", "CEE#Capital")], burn=2000000, iter=3000000, 
+mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% c("CEE#Capital", "CEE", "Island", "Euro", "Objective_1", "Coastal")], burn=2000000, iter=3000000, 
                g="BRIC", mprior="random", mcmc="bd", 
                force.full.ols = TRUE, user.int= TRUE,
                fixed.reg = TF)
 
-doParallel::registerDoParallel()
-mfls_fix2 = bms(datas_fix[,!names(datas_fix) %in% c("CEE#Capital")], burn=2000000, iter=3000000, 
+mfls_fix2 = bms(datas_fix, burn=2000000, iter=3000000, 
                g="BRIC", mprior="random", mcmc="bd", 
                force.full.ols = TRUE, user.int= TRUE,
                fixed.reg = TF)
 
-doParallel::registerDoParallel()
-mfls_fix3 = bms(datas_fix, burn=2000000, iter=3000000, 
-               g="BRIC", mprior="random", mcmc="bd.int", 
+mfls_fix3 = bms(datas_fix, burn=2000000, iter=3000000,
+               g="BRIC", mprior="random", mcmc="bd.int",
                force.full.ols = TRUE, user.int= TRUE)
 
 # TEST: SAR+BMA ------
+W <- readRDS("03_final-input/idw.rds")
+WL <- readRDS("03_final-input/Filter.rds")
+
 idw <- W
 idw$neighbours <- rep(W$neighbours, each = 11);
 idw$weights <- rep(W$weights, each = 11)
 
-class(idw$neighbours) <- "nb"
+attr(idw$neighbours, "class") <- "nb"
 attr(idw$neighbours, "region.id") <- rep(attr(W$neighbours, "region.id"), each = 11)
 attr(idw$neighbours, "sym") <- attr(W$neighbours, "sym")
 attr(idw$neighbours, "call") <- attr(W$neighbours, "call")
-attr(idw$neighbours, "class") <- c("nb")
 
 datas_spat <- data_encoded %>%
   #slice(seq(11, 3311, by = 11)) %>% 

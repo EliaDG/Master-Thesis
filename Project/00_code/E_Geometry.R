@@ -144,7 +144,6 @@ dataset_complete <- dataset %>%
          Output_density = (GDP_EUR/1000000)/Area,
          Employment_density = (Employment_abs/1000)/Area,
          Population_density = (Population_abs/1000)/Area) %>%
-  select(-geometry, Country, NUTS, Name, Year, everything(), geometry) %>% 
   select(-c(Area, Population_abs, GDP_EUR, Employment_abs)) %>% 
   st_cast("MULTIPOLYGON")
 

@@ -41,7 +41,7 @@ dataset <- full_join(data_EU, data_EXTRA) %>%
          Migration_rate = Migration_abs/Population_abs,
          GFCF_share = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GFCF_share, GFCF_EUR / GDP_EUR),
          Labor_Productivity_abs = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GDP_EUR/Employment_abs, Labor_Productivity_abs)) %>% 
-  select(NUTS, Name, Country, Year, GDP_growth, everything()) %>% 
+  select(NUTS, Name, Country, Year, GDP_growth, GDP_capita, GDP_lag, everything()) %>% 
   select(-c(GFCF_EUR, Migration_abs, Unemployment_abs))
 
 #SAVING

@@ -6,14 +6,11 @@ source("00_code/__functions.R")
 
 # LOADING DATA
 dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
-geom <- readRDS("03_final-input/geometries.rds")
-W <- readRDS("03_final-input/idw.rds")
-WL <- readRDS("03_final-input/Filter.rds")
 
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>%
   filter(Candidates == 1 | CEE == 1) %>%
-  select(-c(Candidates, Island)) %>% #I delete Islands becuause is constant otherwise
+  select(-c(Candidates, Island)) %>% #I delete Islands because is constant.
   rename(EU = CEE) %>% 
   mutate(#NUTS_Year = paste0(sapply(NUTS, modify_NUTS) , "_", as.character(Year)),
     Year = as.factor(Year),
@@ -40,6 +37,9 @@ CF <- c("C_Croatia", "C_Bosnia.and.Herzegovina", "C_Bulgaria",
 YF <- c("Y_2010", "Y_2011","Y_2012", "Y_2013", "Y_2014", 
         "Y_2015", "Y_2016", "Y_2017", "Y_2018", "Y_2019")
 
+JF <- c("GDP_capita", "Pop_edu_3", "Capital")
+
+PF <- c(JF,YF)
 TF <- c(CF,YF)
 
 # TEST: BASE MODEL -----
@@ -48,37 +48,53 @@ datas_base <- data_encoded %>%
   select(-c(Name, NUTS, starts_with("C_"),
             Wage_EUR, Labor_Prodx))
 
-mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("EU", "EU#Capital")], burn=2000000, iter=3000000,
+cesee_base1 = bms(datas_base[,!names(datas_base) %in% c("EU", "EU#Capital")], burn=2000000, iter=3000000,
                  g="BRIC", mprior="random", mcmc="bd", 
                  force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = YF)
+                 fixed.reg = PF)
 
-mfls_base2 = bms(datas_base[, !names(datas_base) == "EU#Capital"], burn=2000000, iter=3000000,
+cesee_base2 = bms(datas_base[, !names(datas_base) == "EU#Capital"], burn=2000000, iter=3000000,
                  g="BRIC", mprior="random", mcmc="bd", 
                  force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = YF)
+                 fixed.reg = PF)
 
-mfls_base3 = bms(datas_base, burn=2000000, iter=3000000,
+cesee_base3 = bms(datas_base, burn=2000000, iter=3000000,
                  g="BRIC", mprior="random", mcmc="bd.int", 
                  force.full.ols = TRUE, user.int=TRUE)
 
+cesee_base4 = bms(datas_base[, !names(datas_base) == "EU#Capital"], burn=2000000, iter=3000000,
+                 g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int=TRUE,
+                 fixed.reg = YF)
+
+cesee_base5 = bms(datas_base[,!names(datas_base) %in% c("EU", "Euro", "Objective_1", "Coastal", "Candidates", "EU#Capital")], burn=2000000, iter=3000000,
+                 g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int=TRUE,
+                 fixed.reg = PF)
+
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
-  #mutate(`EU#Capital` = EU*Capital) %>% 
   select(-c(Name, NUTS, EU,
             #Because still to double check real/nominal nature
             Wage_EUR, Labor_Prodx))
 
-mfls_fix1 = bms(datas_fix, burn=2000000, iter=3000000, 
+cesee_fix1 = bms(datas_fix[,!names(datas_fix) %in% c("Island", "Euro", "Objective_1", "Coastal")], burn=2000000, iter=3000000, 
                 g="BRIC", mprior="random", mcmc="bd", 
-                user.int= TRUE, force.full.ols = TRUE,
+                force.full.ols = TRUE, user.int= TRUE,
                 fixed.reg = TF)
 
-# mfls_fix2 = bms(datas_fix, burn=2000000, iter=3000000,
-#                 g="BRIC", mprior="random", mcmc="bd.int",
-#                 force.full.ols = TRUE, user.int= TRUE)
+cesee_fix2 = bms(datas_fix, burn=2000000, iter=3000000, 
+                g="BRIC", mprior="random", mcmc="bd", 
+                force.full.ols = TRUE, user.int= TRUE,
+                fixed.reg = TF)
+
+cesee_fix3 = bms(datas_fix, burn=2000000, iter=3000000, 
+                 g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int= TRUE)
 
 # TEST: SAR+BMA ------
+W <- readRDS("03_final-input/idw.rds")
+WL <- readRDS("03_final-input/Filter.rds")
 idw <- W
 idw$neighbours <- rep(W$neighbours, each = 11);
 idw$weights <- rep(W$weights, each = 11)
@@ -101,7 +117,7 @@ yFilt <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
 WL_new <- list(Col0 = fitted(yFilt))
 datas_spat_mat <- as.matrix(apply(datas_spat, 2, as.numeric))
 #dimnames(datas_spat_mat) <- list(NULL, colnames(datas_spat_mat))
-mfls_spat = spatFilt.bms(X.data = datas_spat_mat, WList = WL_new, 
+cesee_spat = spatFilt.bms(X.data = datas_spat_mat, WList = WL_new, 
                          burn = 100000,iter = 1000000,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
@@ -166,7 +182,7 @@ class(WL); dim(WL)
 #             Wage_EUR, Labor_Prodx))
 # 
 # doParallel::registerDoParallel()
-# mfls_base = bms(subdatas_base, burn=2000000, iter=3000000,
+# cesee_base = bms(subdatas_base, burn=2000000, iter=3000000,
 #                 g="BRIC", mprior="random", mcmc="bd", 
 #                 force.full.ols = TRUE, user.int=TRUE,
 #                 fixed.reg = YF)
@@ -177,7 +193,7 @@ class(WL); dim(WL)
 #             Wage_EUR, Labor_Prodx))
 # 
 # doParallel::registerDoParallel()
-# mfls_fix = bms(subdatas_fix, burn=2000000, iter=3000000, 
+# cesee_fix = bms(subdatas_fix, burn=2000000, iter=3000000, 
 #                g="BRIC", mprior="random", mcmc="bd", 
 #                force.full.ols = TRUE, user.int= TRUE,
 #                fixed.reg = TF)

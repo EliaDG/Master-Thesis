@@ -19,9 +19,9 @@ summary(dataset)
 #      border = "black")
 
 data <- dataset %>%
-  mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita, log)) %>%
+  mutate(across(starts_with("Prodx") | Labor_Productivity_abs | Wage_EUR | GDP_capita | GDP_lag, log)) %>%
   rename(Labor_Prodx = Labor_Productivity_abs) %>% 
-  as_data_frame()
+  as.data.frame()
 
 #Imputation ----------
 doParallel::registerDoParallel()
@@ -46,13 +46,13 @@ predictormatrix<-quickpred(data,
                                        "Fertility_rate", "Pop_edu_1", "Pop_edu_2", 
                                        "Pop_edu_3", "inv_rate", "GVA_primary", 
                                        "GVA_services", "GVA_public", "GFCF_share", 
-                                       "GDP_capita", "Pop_growth", "emp_rate", 
+                                       "GDP_capita", "GDP_log", "Pop_growth", "emp_rate", 
                                        "unemp_rate", "Migration_rate", 
                                        "Candidates", "CEE", "Capital", "Coastal", 
                                        "Island", "Objective_1", "Euro", "Output_density",
                                        "Employment_density", "Population_density", "Dist_BRUX"),
                            exclude = c("NUTS", "Name", "Country", "Year"),
-                           mincor = 0.7)
+                           mincor = 0.5)
 
 doParallel::registerDoParallel()
 data_mice <- mice(data, m = 5,

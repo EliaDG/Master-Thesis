@@ -155,17 +155,22 @@ GDP_Pop_Europe_correct <- rbind(GDP_extra_final, GDP_EU_final) %>%
   full_join(Population, by = c("NUTS", "Name", "Year")) %>% 
   arrange(NUTS, Name, Year) %>%
   mutate(GDP_capita_09 = GDP_EUR_2009/Population_abs,
-        GDP_capita_15 = GDP_EUR_2015/Population_abs,
-        GDP_capita = GDP_EUR/Population_abs) %>% 
+         GDP_capita_15 = GDP_EUR_2015/Population_abs,
+         GDP_capita = GDP_EUR/Population_abs) %>% 
   group_by(Name, NUTS) %>%
   mutate(GDP_growth_09 = (GDP_capita_09 - lag(GDP_capita_09)) / lag(GDP_capita_09),
          GDP_growth_15 = (GDP_capita_15 - lag(GDP_capita_15)) / lag(GDP_capita_15),
-         GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita)) %>%
+         GDP_growth = (GDP_capita - lag(GDP_capita)) / lag(GDP_capita),
+         GDP_lag_09 = lag(GDP_capita_09),
+         GDP_lag_15 = lag(GDP_capita_15),
+         GDP_lag = lag(GDP_capita)
+         ) %>%
   filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019)) %>%
   ungroup() %>% 
-  select(NUTS, Name, Year, GDP_EUR_2009, GDP_capita_09, GDP_growth_09, Population_abs, Pop_growth) %>% 
+  select(NUTS, Name, Year, GDP_EUR_2009, GDP_capita_09, GDP_lag_09, GDP_growth_09, Population_abs, Pop_growth) %>% 
   rename(GDP_EUR = GDP_EUR_2009,
-         GDP_capita = GDP_capita_09, 
+         GDP_capita = GDP_capita_09,
+         GDP_lag = GDP_lag_09,
          GDP_growth = GDP_growth_09)
 
 #SAVING

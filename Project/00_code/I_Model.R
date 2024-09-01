@@ -2,14 +2,14 @@ getwd()
 
 # DEPENDENCIES
 source("00_code/__packages.R")
-source("00_code/__functions.R")
+# source("00_code/__functions.R")
 
 # LOADING DATA
 dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
 
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>% 
-  mutate(#NUTS_Year = paste0(sapply(NUTS, modify_NUTS) , "_", as.character(Year)),
+  mutate( #NUTS_Year = paste0(sapply(NUTS, modify_NUTS) , "_", as.character(Year)),
          Year = as.factor(Year),
          Country = as.factor(Country))
   #column_to_rownames(var = "NUTS_Year")
@@ -34,17 +34,12 @@ CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bu
 YF <- c("Y_2010", "Y_2011","Y_2012", "Y_2013", "Y_2014", 
         "Y_2015", "Y_2016", "Y_2017", "Y_2018", "Y_2019")
 
-JF <- c("GDP_capita", "Pop_edu_3", "Capital")
-
-PF <- c(JF,YF)
-TF <- c(CF,PF)
+TF <- c(CF,YF)
 
 # TEST: BASE MODEL -----
 datas_base <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital) %>% 
-  select(-c(Name, NUTS, starts_with("C_"),
-            #Because still to double check real/nominal nature
-            Wage_EUR, Labor_Prodx))
+  select(-c(Name, NUTS, starts_with("C_")))
 
 ## Correlation Check
 # cor_matrix <- cor(datas_base)
@@ -52,52 +47,39 @@ datas_base <- data_encoded %>%
 # high_corr_columns <- findCorrelation(cor_matrix, cutoff = 0.7)
 # datas_corr <- select(datas_base, high_corr_columns)
 
-doParallel::registerDoParallel()
-mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", "CEE#Capital")], burn=2000000, iter=3000000,
-                g="BRIC", mprior="random", mcmc="bd", 
-                force.full.ols = TRUE, user.int=TRUE,
-                fixed.reg = PF)
+mfls_base = bms(datas_base[,!names(datas_base) %in% c("CEE", "Island", "Euro", "Objective_1", "Coastal", "Candidates", "CEE#Capital")],
+                burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd",
+                user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_base2 = bms(datas_base[, !names(datas_base) == "CEE#Capital"], burn=2000000, iter=3000000,
-                g="BRIC", mprior="random", mcmc="bd", 
-                force.full.ols = TRUE, user.int=TRUE,
-                fixed.reg = PF)
+mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", "CEE#Capital")], 
+                 burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                 user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_base3 = bms(datas_base, burn=2000000, iter=3000000,
-                g="BRIC", mprior="random", mcmc="bd.int", 
-                force.full.ols = TRUE, user.int=TRUE)
+mfls_base2 = bms(datas_base[, !names(datas_base) == "CEE#Capital"], burn=2e+06, iter=3e+06,
+                 g="BRIC", mprior="random", mcmc="bd",
+                 user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_base4 = bms(datas_base[, !names(datas_base) == "CEE#Capital"], burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd", 
-                 force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = YF)
-
-mfls_base5 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Island", "Euro", "Objective_1", "Coastal", "Candidates", "CEE#Capital")], burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd", 
-                 force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = PF)
-
+mfls_base3 = bms(datas_base, burn=2e+06, iter=3e+06,
+                 g="BRIC", mprior="random", mcmc="bd.int",
+                 user.int=TRUE, force.full.ols = TRUE)
 
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital) %>% 
-  select(-c(Name, NUTS, Candidates,
-            #Because still to double check real/nominal nature
-            Wage_EUR, Labor_Prodx))
+  select(-c(Name, NUTS, Candidates))
 
-mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% c("CEE#Capital", "CEE", "Island", "Euro", "Objective_1", "Coastal")], burn=2000000, iter=3000000, 
-               g="BRIC", mprior="random", mcmc="bd", 
-               force.full.ols = TRUE, user.int= TRUE,
-               fixed.reg = TF)
+mfls_fix = bms(datas_fix[,!names(datas_fix) %in% c("CEE#Capital", "CEE", "Island", "Euro", "Objective_1", "Coastal")],
+               burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd",
+               user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
-mfls_fix2 = bms(datas_fix, burn=2000000, iter=3000000, 
-               g="BRIC", mprior="random", mcmc="bd", 
-               force.full.ols = TRUE, user.int= TRUE,
-               fixed.reg = TF)
+mfls_fix1 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
-mfls_fix3 = bms(datas_fix, burn=2000000, iter=3000000,
-               g="BRIC", mprior="random", mcmc="bd.int",
-               force.full.ols = TRUE, user.int= TRUE)
+mfls_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd.int",
+                user.int= TRUE, force.full.ols = TRUE)
+
+# load(here("00_code", "CESEE.RData"))
+# load(here("00_code", "EU36.RData"))
 
 # TEST: SAR+BMA ------
 W <- readRDS("03_final-input/idw.rds")
@@ -114,9 +96,7 @@ attr(idw$neighbours, "call") <- attr(W$neighbours, "call")
 
 datas_spat <- data_encoded %>%
   #slice(seq(11, 3311, by = 11)) %>% 
-  select(-c(Name, NUTS, starts_with("C_"),
-            #Because still to double check real/nominal nature
-            Wage_EUR, Labor_Prodx))
+  select(-c(Name, NUTS, starts_with("C_")))
 
 y <- as.data.frame(datas_spat[, 1, drop = F])
 yFilt <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
@@ -125,7 +105,7 @@ WL_new <- list(Col0 = fitted(yFilt))
 datas_spat_mat <- as.matrix(apply(datas_spat, 2, as.numeric))
 #dimnames(datas_spat_mat) <- list(NULL, colnames(datas_spat_mat))
 mfls_spat = spatFilt.bms(X.data = datas_spat_mat, WList = WL_new, 
-                         burn = 100000,iter = 1000000,
+                         burn = 2e+06,iter = 3e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
 # Comparison to tutorial:
@@ -189,7 +169,7 @@ class(WL); dim(WL)
 #             Wage_EUR, Labor_Prodx))
 # 
 # doParallel::registerDoParallel()
-# mfls_base = bms(subdatas_base, burn=2000000, iter=3000000,
+# mfls_base = bms(subdatas_base, burn=2e+06, iter=3e+06,
 #                 g="BRIC", mprior="random", mcmc="bd", 
 #                 force.full.ols = TRUE, user.int=TRUE,
 #                 fixed.reg = YF)
@@ -200,7 +180,7 @@ class(WL); dim(WL)
 #             Wage_EUR, Labor_Prodx))
 # 
 # doParallel::registerDoParallel()
-# mfls_fix = bms(subdatas_fix, burn=2000000, iter=3000000, 
+# mfls_fix = bms(subdatas_fix, burn=2e+06, iter=3e+06, 
 #                g="BRIC", mprior="random", mcmc="bd", 
 #                force.full.ols = TRUE, user.int= TRUE,
 #                fixed.reg = TF)

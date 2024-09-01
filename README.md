@@ -1,4 +1,4 @@
-# Master Thesis: Determinants of Growth in EU27 + CANDID8
+# Master Thesis: Determinants of Growth in EU28 + CANDID8
 
 Welcome! The structure of this repository is the following:
 

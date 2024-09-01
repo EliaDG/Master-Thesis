@@ -37,59 +37,42 @@ CF <- c("C_Croatia", "C_Bosnia.and.Herzegovina", "C_Bulgaria",
 YF <- c("Y_2010", "Y_2011","Y_2012", "Y_2013", "Y_2014", 
         "Y_2015", "Y_2016", "Y_2017", "Y_2018", "Y_2019")
 
-JF <- c("GDP_capita", "Pop_edu_3", "Capital")
-
-PF <- c(JF,YF)
 TF <- c(CF,YF)
 
 # TEST: BASE MODEL -----
 datas_base <- data_encoded %>%
   mutate(`EU#Capital` = EU*Capital) %>% 
-  select(-c(Name, NUTS, starts_with("C_"),
-            Wage_EUR, Labor_Prodx))
+  select(-c(Name, NUTS, starts_with("C_")))
 
-cesee_base1 = bms(datas_base[,!names(datas_base) %in% c("EU", "EU#Capital")], burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd", 
-                 force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = PF)
+cesee_base = bms(datas_base[,!names(datas_base) %in% c("EU", "Euro", "Objective_1", "Coastal", "EU#Capital")], 
+                  burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                  force.full.ols = TRUE, user.int=TRUE, fixed.reg = YF)
 
-cesee_base2 = bms(datas_base[, !names(datas_base) == "EU#Capital"], burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd", 
-                 force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = PF)
+cesee_base1 = bms(datas_base[,!names(datas_base) %in% c("EU", "EU#Capital")], 
+                  burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd",
+                  force.full.ols = TRUE, user.int=TRUE, fixed.reg = YF)
 
-cesee_base3 = bms(datas_base, burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd.int", 
-                 force.full.ols = TRUE, user.int=TRUE)
+cesee_base2 = bms(datas_base, burn=2e+06, iter=3e+06,
+                  g="BRIC", mprior="random", mcmc="bd.int",
+                  force.full.ols = TRUE, user.int=TRUE)
 
-cesee_base4 = bms(datas_base[, !names(datas_base) == "EU#Capital"], burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd", 
-                 force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = YF)
-
-cesee_base5 = bms(datas_base[,!names(datas_base) %in% c("EU", "Euro", "Objective_1", "Coastal", "Candidates", "EU#Capital")], burn=2000000, iter=3000000,
-                 g="BRIC", mprior="random", mcmc="bd", 
-                 force.full.ols = TRUE, user.int=TRUE,
-                 fixed.reg = PF)
+cesee_base3 = bms(datas_base, burn=2e+06, iter=3e+06,
+                  g="BRIC", mprior="random", mcmc="bd",
+                  force.full.ols = TRUE, user.int=TRUE,
+                  fixed.reg = YF)
 
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
-  select(-c(Name, NUTS, EU,
-            #Because still to double check real/nominal nature
-            Wage_EUR, Labor_Prodx))
+  select(-c(Name, NUTS, EU))
 
-cesee_fix1 = bms(datas_fix[,!names(datas_fix) %in% c("Island", "Euro", "Objective_1", "Coastal")], burn=2000000, iter=3000000, 
-                g="BRIC", mprior="random", mcmc="bd", 
-                force.full.ols = TRUE, user.int= TRUE,
-                fixed.reg = TF)
+cesee_fix = bms(datas_fix[,!names(datas_fix) %in% c("Island", "Euro", "Objective_1", "Coastal")], 
+                 burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                force.full.ols = TRUE, user.int= TRUE, fixed.reg = TF)
 
-cesee_fix2 = bms(datas_fix, burn=2000000, iter=3000000, 
-                g="BRIC", mprior="random", mcmc="bd", 
-                force.full.ols = TRUE, user.int= TRUE,
-                fixed.reg = TF)
+cesee_fix1 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                force.full.ols = TRUE, user.int= TRUE, fixed.reg = TF)
 
-cesee_fix3 = bms(datas_fix, burn=2000000, iter=3000000, 
-                 g="BRIC", mprior="random", mcmc="bd", 
+cesee_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
                  force.full.ols = TRUE, user.int= TRUE)
 
 # TEST: SAR+BMA ------
@@ -182,7 +165,7 @@ class(WL); dim(WL)
 #             Wage_EUR, Labor_Prodx))
 # 
 # doParallel::registerDoParallel()
-# cesee_base = bms(subdatas_base, burn=2000000, iter=3000000,
+# cesee_base = bms(subdatas_base, burn=2e+06, iter=3e+06,
 #                 g="BRIC", mprior="random", mcmc="bd", 
 #                 force.full.ols = TRUE, user.int=TRUE,
 #                 fixed.reg = YF)
@@ -193,7 +176,7 @@ class(WL); dim(WL)
 #             Wage_EUR, Labor_Prodx))
 # 
 # doParallel::registerDoParallel()
-# cesee_fix = bms(subdatas_fix, burn=2000000, iter=3000000, 
+# cesee_fix = bms(subdatas_fix, burn=2e+06, iter=3e+06, 
 #                g="BRIC", mprior="random", mcmc="bd", 
 #                force.full.ols = TRUE, user.int= TRUE,
 #                fixed.reg = TF)

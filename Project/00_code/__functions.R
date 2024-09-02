@@ -161,6 +161,38 @@ demean = function(x, margin) {
   sweep(x,otherdims,apply(x,otherdims,mean))
 }
 
+jitterW_binary=function(Wmat,N=5){
+  # user checks
+  if(class(Wmat)!="matrix")
+    stop("Please submit a symmetric matrix object.")
+  bigN=dim(Wmat)
+  if(bigN[1]!=bigN[2])
+    stop("Please submit a symmetric matrix object.")
+  bigN=bigN[1]
+  
+  
+  # randomly choose some spatial entities where to change the neighborhood structure
+  idx=matrix(round(runif(N*2,1,bigN),0),ncol=2)
+  diagTest=idx[,1]-idx[,2]
+  # in case we have chosen the diagonal element, reset this here
+  dT=which(diagTest==0)
+  if(length(dT)>0)
+    idx[dT,2]=idx[dT,2]+1
+  
+  
+  # now jitter the matrix
+  for(i in 1:N){
+    ab=Wmat[idx[i],idx[i]]
+    if(ab==1){
+      Wmat[idx[i],idx[i]]=0
+    }
+    if(ab==0){
+      Wmat[idx[i],idx[i]]=1
+    }
+  }
+  results=list(Wmat=Wmat)
+  return(results)
+}
 
 # ##------------------------
 # 

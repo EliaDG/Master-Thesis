@@ -53,7 +53,7 @@ value_pairs <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 new_W_matrix <- update_w_queen(queen_matrix, region_pairs, value_pairs)
-queen_listw <- mat2listw(new_W_matrix, style = "B", row.names = geom$NUTS, zero.policy = TRUE)
+queen_listw <- mat2listw(new_W_matrix, style = "B", zero.policy = TRUE)
 queen_nb <- queen_listw$neighbours
 
 coords <- st_coordinates(st_centroid(geom$geometry))

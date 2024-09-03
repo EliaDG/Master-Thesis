@@ -83,6 +83,9 @@ mfls_fix = bms(datas_fix[,!names(datas_fix) %in% c("Capital", "Island", "Euro", 
 mfls_fix1 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
+mfls_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                user.int= TRUE, force.full.ols = TRUE, fixed.reg = CF)
+
 # TEST: SAR+BMA -----
 W1 <- readRDS("03_final-input/idw.rds")
 
@@ -109,6 +112,8 @@ datas_spat <- data_encoded %>%
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
   select(-c(Name, NUTS, starts_with("C_")))
 
+# lagsarlm()
+
 y <- as.data.frame(datas_spat[, 1, drop = F])
 yFilt1 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
                           nb = nb1, glist = idw1$weights, style = "B", ExactEV = FALSE)
@@ -132,12 +137,14 @@ mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL,
                          nmodel=100, mcmc="bd.int", g="BRIC", 
                          mprior="random", user.int = TRUE)
 
-#SAVING
-# rm(list = setdiff(ls(), c("cesee_base", "cesee_base1", "cesee_base2", "cesee_base3", 
-#                           "cesee_fix", "cesee_fix1", 
-#                           "mfls_base", "mfls_base1", "mfls_base2", "mfls_base3", 
-#                           "mfls_fix", "mfls_fix1", 
-#                           "sub_base", "sub_base1", "sub_fix")))
+### SAVING
+# rm(list = setdiff(ls(), c("cesee_base", "cesee_base1", "cesee_base2", "cesee_base3",
+#                           "cesee_fix", "cesee_fix1",
+#                           "mfls_base", "mfls_base1", "mfls_base2", "mfls_base3",
+#                           "mfls_fix", "mfls_fix1",
+#                           "sub_base", "sub_base1", "sub_fix",
+#                           "alt_base", "fixed_base", "unifom_base", "pip_base",
+#                           "alt_fix", "unifom_fix", "pip_fix")))
 # save.image(file = "Models.RData")
 
                           

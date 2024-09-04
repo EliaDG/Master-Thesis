@@ -77,6 +77,12 @@ cesee_fix = bms(datas_fix[,!names(datas_fix) %in% c("Island", "Capital", "Euro",
 cesee_fix1 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
                 force.full.ols = TRUE, user.int= TRUE, fixed.reg = TF)
 
+cesee_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int= TRUE, fixed.reg = CF)
+
+cesee_fix3 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                 force.full.ols = TRUE, user.int= TRUE)
+
 # TEST: SAR+BMA ------
 W1 <- readRDS("03_final-input/idw.rds")
 

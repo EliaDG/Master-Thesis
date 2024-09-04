@@ -75,3 +75,7 @@ sub_fix = bms(subdatas_fix, burn=2e+06, iter=3e+06,
                g="BRIC", mprior="random", mcmc="bd",
                force.full.ols = TRUE, user.int= TRUE,
                fixed.reg = TF)
+
+sub_fix1 = bms(subdatas_fix, burn=2e+06, iter=3e+06,
+              g="BRIC", mprior="random", mcmc="bd",
+              force.full.ols = TRUE, user.int= TRUE)

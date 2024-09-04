@@ -9,10 +9,10 @@ dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
 
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>% 
-  mutate( #NUTS_Year = paste0(sapply(NUTS, modify_NUTS) , "_", as.character(Year)),
+  mutate(#NUTS_Year = paste0(sapply(NUTS, modify_NUTS) , "_", as.character(Year)),
          Year = as.factor(Year),
          Country = as.factor(Country))
-  #column_to_rownames(var = "NUTS_Year")
+         #column_to_rownames(var = "NUTS_Year")
 
 country_encoded <- model.matrix(~ Country- 1, data = data)[, -which(levels(data$Country) == "France")]
 colnames(country_encoded) <- gsub("^Country", "C_", colnames(country_encoded))
@@ -86,6 +86,9 @@ mfls_fix1 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mc
 mfls_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = CF)
 
+mfls_fix3 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                user.int= TRUE, force.full.ols = TRUE)
+
 # TEST: SAR+BMA -----
 W1 <- readRDS("03_final-input/idw.rds")
 
@@ -139,10 +142,10 @@ mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL,
 
 ### SAVING
 # rm(list = setdiff(ls(), c("cesee_base", "cesee_base1", "cesee_base2", "cesee_base3",
-#                           "cesee_fix", "cesee_fix1",
+#                           "cesee_fix", "cesee_fix1", "cesee_fix2", "cesee_fix3",
 #                           "mfls_base", "mfls_base1", "mfls_base2", "mfls_base3",
-#                           "mfls_fix", "mfls_fix1",
-#                           "sub_base", "sub_base1", "sub_fix",
+#                           "mfls_fix", "mfls_fix1", "mfls_fix2", "mfls_fix3",
+#                           "sub_base", "sub_base1", "sub_fix", "sub_fix1",
 #                           "alt_base", "fixed_base", "unifom_base", "pip_base",
 #                           "alt_fix", "unifom_fix", "pip_fix")))
 # save.image(file = "Models.RData")

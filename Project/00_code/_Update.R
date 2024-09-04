@@ -6,7 +6,7 @@ source("00_code/__functions.R")
 
 dataset <- read_csv("03_final-input/dataset.csv")
 
-## Overview ----
+## Missing observations ----
 core <- dataset %>% 
   select(-c(Country, Dist_BRUX, Capital, Euro, Coastal, Island, Objective_1, GDP_growth))
 glimpse(core)
@@ -140,3 +140,54 @@ Pop_3 <- ggplot(World) +
   scale_fill_viridis_c(option = "viridis", na.value = "grey50", name = "Pop_edu_3") +
   coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
 grid.arrange(Pop_1, Pop_2, Pop_3, nrow = 1)
+
+
+# Models ------
+
+
+# Complete dataset
+# Time fixed effects as fixed regressor
+mfls_base        # No dummies
+mfls_base1       # No CEE, Candidates, Interactions
+mfls_base2       # No Interactions
+mfls_base3       # Heredity principle
+#---------#
+# Pop_edu_3/GDP_capita/Capital as fixed regressor
+alt_base        # With interactions
+
+mfls_fix        # No dummies, but with year and country fixed effects as fixed regressor
+mfls_fix1       # With year and country fixed effects as fixed regressor
+mfls_fix2       # With only country effect as fixed regressor
+mfls_fix3       # No fixed regressor
+#--------#
+alt_fix         # With Pop_edu_3/GDP_capita/Capital as fixed regressor
+
+
+# CESEE Dataset
+# Time fixed effects as fixed regressor
+cesee_base        # No dummies
+cesee_base1       # No EU, Interactions
+cesee_base2
+cesee_base3       # Heredity principle
+
+cesee_fix        # No dummies, but with year and country fixed effects as fixed regressor
+cesee_fix1       # With year and country fixed effects as fixed regressor
+cesee_fix2       # With country effect as fixed regressor
+cesee_fix3       # No fixed regressor
+
+
+# Splitted Dataset
+# With interactions
+sub_base        # With time fixed effects as fixed regressor
+sub_base1       # Heredity principle
+
+sub_fix         # With time and country fixed effects
+sub_fix1        # Heredity principle
+
+# Alternative model priors
+fixed_base
+unifom_base
+pip_base
+
+uniform_fix
+pip_fix

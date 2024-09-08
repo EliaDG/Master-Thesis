@@ -72,21 +72,19 @@ Fertility_RS <- read_excel("01_data-input/National/RS/fertility.xlsx", sheet = "
 Life_exp_RS <- read_excel("01_data-input/National/RS/life_expectancy.xlsx", sheet = "Data_clean")
 Actrt_AL <- read_excel("01_data-input/wiiw/activity.xlsx", sheet = "Data_clean", na = ".")
 WDI_AL <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_AL", na = "..") 
-Pop_edu_AL <- read_csv("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU.csv", na = "..")
+Pop_edu_AL <- read_excel("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU_complete.xlsx", sheet = "Data_clean")
 
 Fertility_RS <- Fertility_RS %>% 
   select(-2) %>% 
   rename(Fertility_rate = 3,
          `GEO (Codes)` = 1) %>% 
-  mutate(Fertility_rate = as.numeric(Fertility_rate)) %>% 
-  filter(Year %in% c(2000:2019))
+  mutate(Fertility_rate = as.numeric(Fertility_rate))
 
 Life_exp_RS <- Life_exp_RS %>% 
   select(-2) %>% 
   rename(Life_exp = 3,
          `GEO (Codes)` = 1) %>% 
-  mutate(Life_exp = as.numeric(Life_exp)) %>% 
-  filter(Year %in% c(2000:2019))
+  mutate(Life_exp = as.numeric(Life_exp))
 
 Actrt_AL <- Actrt_AL %>% 
   slice(1) %>% 
@@ -115,8 +113,7 @@ WDI_extra_AL <- WDI_AL %>%
          ISCED_5 = `Educational attainment, at least completed short-cycle tertiary, population 25+, total (%) (cumulative)`,
          ISCED_6 = `Educational attainment, at least Bachelor's or equivalent, population 25+, total (%) (cumulative)`,
          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
-         ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`) %>% 
-  filter(Year %in% 2009:2019) %>% 
+         ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`) %>%
   mutate( #Pop_edu_3 = ISCED_5/100,
   #        Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
   #        Pop_edu_1 = (ISCED_2 - ISCED_3)/100,
@@ -126,7 +123,8 @@ WDI_extra_AL <- WDI_AL %>%
 Pop_edu_AL <-  Pop_edu_AL %>% 
   filter(NUTS == "AL00") %>% 
   arrange(NUTS, Year) %>% 
-  mutate(Pop_edu_1 = (Basic+`Less than basic`)/Total,
+  mutate(across(-c(NUTS, Name), as.numeric),
+         Pop_edu_1 = (Basic+`Less than basic`)/Total,
          Pop_edu_2 = Intermediate/Total,
          Pop_edu_3 = Advanced/Total) %>% 
   select(-c(Total, Basic, `Less than basic`, Intermediate, Advanced))
@@ -162,8 +160,7 @@ eurostat <- Reduce(function(x, y) full_join(x, y, by = c("GEO (Codes)", "GEO (La
          Life_exp = coalesce(Life_exp.x, Life_exp.y),
          Fertility_rate = coalesce(Fertility_rate.x, Fertility_rate.y)) %>% 
   arrange(NUTS, Year) %>% 
-  filter(!NUTS %in% c("AL01", "AL02", "AL03", "BA"),
-         Year %in% 2009:2019) %>% 
+  filter(!NUTS %in% c("AL01", "AL02", "AL03", "BA")) %>% 
   select(-ends_with(".x"), -ends_with(".y"))
 
 eurostat_complete <- eurostat %>%
@@ -174,6 +171,10 @@ eurostat_complete <- eurostat %>%
          Pop_edu_2 = coalesce(Pop_edu_2.x, Pop_edu_2.y),
          Pop_edu_3 = coalesce(Pop_edu_3.x, Pop_edu_3.y)) %>% 
   select(-ends_with(".x"), -ends_with(".y"))
+  # group_by(NUTS) %>% 
+  # mutate(across(-c(Name, Year), lag)) %>% 
+  # ungroup() %>% 
+  # filter(Year %in% 2009:2019) 
 
 #SAVING
 write.csv(eurostat_complete, file = here("02_intermediary-input", "eurostat_dataset.csv"), row.names = FALSE)

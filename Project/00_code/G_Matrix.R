@@ -13,9 +13,9 @@ queen_listw <- nb2listw(queen_nb, style = "B", zero.policy=TRUE)
 queen_matrix <- listw2mat(queen_listw)
 colnames(queen_matrix) <- geom$NUTS
 
-# Given that original shapefiles come from different sources not always neighboring regions
-# appear as such. I manually set them so, besides connecting islands and regions
-# where infrastructure has brought a tangible connection, and connecting the islands to at
+# Given that original shapefiles come from different sources (Eurostat and GADM) not always neighboring regions
+# appear as such. I manually set them so, besides connecting regions
+# where infrastructure has brought a tangible connection, and connecting islands to at
 # least one region.
 
 region_pairs <- list(
@@ -61,8 +61,106 @@ dist <- nbdists(queen_nb, coords, longlat = TRUE)
 idw <- lapply(dist, function(x) 1/(x))
 idw_2 <- lapply(dist, function(x) 1/(x^2))
 
-idw_listw <- nb2listw(queen_nb, glist = idw, style = "B", zero.policy = TRUE)
-idw_2_listw <- nb2listw(queen_nb, glist = idw_2, style = "B", zero.policy = TRUE)
+W1 <- nb2listw(queen_nb, glist = idw, zero.policy = TRUE)
+W2 <- nb2listw(queen_nb, glist = idw_2, zero.policy = TRUE)
+W3 <- nb2listw(queen_nb, style = "B", zero.policy = TRUE)
+W4 <- nb2listw(nblag_cumul(nblag(queen_nb, 2)), style = "B", zero.policy = TRUE)
+
+coords <- st_coordinates(st_centroid(geom))
+k.near <- knearneigh(coords, k=5)
+k5 <- knn2nb(k.near)
+W5 <- nb2listw(k5, style = "W", zero.policy = TRUE)
+
+
+#Spatial Filtering -----
+idw1 <- W1
+idw1$neighbours <- rep(W1$neighbours, each = 11);
+idw1$weights <- rep(W1$weights, each = 11)
+
+attr(idw1$neighbours, "class") <- "nb"
+attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
+attr(idw1$neighbours, "sym") <- TRUE
+attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
+
+nb1 <- idw1$neighbours
+
+idw2 <- W2
+idw2$neighbours <- rep(W2$neighbours, each = 11);
+idw2$weights <- rep(W2$weights, each = 11)
+
+attr(idw2$neighbours, "class") <- "nb"
+attr(idw2$neighbours, "region.id") <- rep(attr(W2$neighbours, "region.id"), each = 11)
+attr(idw2$neighbours, "sym") <- TRUE
+attr(idw2$neighbours, "call") <- attr(W2$neighbours, "call")
+
+nb2 <- idw2$neighbours
+
+idw3 <- W3
+idw3$neighbours <- rep(W3$neighbours, each = 11);
+idw3$weights <- rep(W3$weights, each = 11)
+
+attr(idw3$neighbours, "class") <- "nb"
+attr(idw3$neighbours, "region.id") <- rep(attr(W3$neighbours, "region.id"), each = 11)
+attr(idw3$neighbours, "sym") <- TRUE
+attr(idw3$neighbours, "call") <- attr(W3$neighbours, "call")
+
+nb3 <- idw3$neighbours
+
+idw4 <- W4
+idw4$neighbours <- rep(W4$neighbours, each = 11);
+idw4$weights <- rep(W4$weights, each = 11)
+
+attr(idw4$neighbours, "class") <- "nb"
+attr(idw4$neighbours, "region.id") <- rep(attr(W4$neighbours, "region.id"), each = 11)
+attr(idw4$neighbours, "sym") <- TRUE
+attr(idw4$neighbours, "call") <- attr(W4$neighbours, "call")
+
+nb4 <- idw4$neighbours
+
+idw5 <- W5
+idw5$neighbours <- rep(W5$neighbours, each = 11);
+idw5$weights <- rep(W5$weights, each = 11)
+
+attr(idw5$neighbours, "class") <- "nb"
+attr(idw5$neighbours, "region.id") <- rep(attr(W5$neighbours, "region.id"), each = 11)
+attr(idw5$neighbours, "sym") <- TRUE
+attr(idw5$neighbours, "call") <- attr(W5$neighbours, "call")
+
+nb5 <- idw5$neighbours
+
+data_encoded <- read_csv("03_final-input/encoded_dataset.csv")
+datas_spat <- data_encoded %>%
+  mutate(`CEE#Capital` = CEE*Capital,
+         `CEE#GVA_services` = CEE*GVA_services,
+         `CEE#GVA_public` = CEE*GVA_public,
+         `CEE#GVA_agriculture` = CEE*GVA_agriculture,
+         `CEE#GVA_industry` = CEE*GVA_industry,
+         `CEE#GVA_construction` = CEE*GVA_construction,
+         `Candidates#GVA_public` = Candidates*GVA_public,
+         `Candidates#GVA_services` = Candidates*GVA_services,
+         `Candidates#GVA_agriculture` = Candidates*GVA_agriculture,
+         `Candidates#GVA_industry` = Candidates*GVA_industry,
+         `Candidates#GVA_construction` = Candidates*GVA_construction,
+         `CEE#GDP_capita` = CEE*GDP_capita,
+         `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
+  select(-c(Name, NUTS, starts_with("C_"))) %>% 
+  as.data.frame()
+interaction <- grep("#", names(datas_spat), value = TRUE)
+
+y <- as.data.frame(datas_spat[, 1, drop = F])
+yFilt1 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
+                           nb = nb1, glist = idw1$weights, ExactEV = TRUE)
+yFilt2 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
+                           nb = nb2, glist = idw2$weights, ExactEV = TRUE)
+yFilt3 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
+                           nb = nb3, glist = idw3$weights, style = "B", ExactEV = FALSE)
+yFilt4 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
+                           nb = nb4, glist = idw4$weights, style = "B", ExactEV = FALSE)
+yFilt5 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
+                           nb = nb5, glist = idw5$weights, style = "W", ExactEV = TRUE)
+
+WL <- list(Col_A = fitted(yFilt1), Col_B = fitted(yFilt2), Col_C = fitted(yFilt3), Col_D = fitted(yFilt4), Col_E = fitted(yFilt5))
+sapply(WL, function(x) any(is.na(x)))
 
 # Visualization queen continuity network -------
 queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))
@@ -73,43 +171,4 @@ ggplot(data = geom) +
 #coord_sf(xlim = c(18, 23), ylim = c(43, 48)) to zoom in
 
 #SAVING
-saveRDS(idw_listw, file = "03_final-input/idw.rds")
-saveRDS(idw_2_listw, file = "03_final-input/idw_2.rds")
-
-# Appendix
-# # Turn list into matrix
-# # Number of regions
-# num_regions <- length(region_names)
-# 
-# # Initialize an empty matrix
-# idw_matrix <- matrix(0, nrow = num_regions, ncol = num_regions)
-# rownames(idw_matrix) <- region_names
-# colnames(idw_matrix) <- region_names
-# 
-# # Fill the matrix with idw values
-# for (i in seq_along(idw_named)) {
-#   region <- names(idw_named)[i]
-#   neighbors <- queen_nb[[i]]
-#   idw_values <- idw_named[[i]]
-# 
-#   # Assign the idw values to the corresponding positions in the matrix
-#   idw_matrix[region, region_names[neighbors]] <- idw_values
-# }
-# 
-# # Initialize an empty matrix
-# idw_2_matrix <- matrix(0, nrow = num_regions, ncol = num_regions)
-# rownames(idw_2_matrix) <- region_names
-# colnames(idw_2_matrix) <- region_names
-# 
-# # Fill the matrix with idw values
-# for (i in seq_along(idw_named)) {
-#   region <- names(idw_2_named)[i]
-#   neighbors <- queen_nb[[i]]
-#   idw_2_values <- idw_2_named[[i]]
-# 
-#   # Assign the idw values to the corresponding positions in the matrix
-#   idw_2_matrix[region, region_names[neighbors]] <- idw_2_values
-# }
-# 
-# idw_listw <- mat2listw(idw_matrix, row.names = geom$NUTS, zero.policy = TRUE)
-# idw_2_listw <- mat2listw(idw_2_matrix, row.names = geom$NUTS, zero.policy = TRUE)
+saveRDS(WL, file = "03_final-input/WL.rds")

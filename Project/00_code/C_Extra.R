@@ -17,7 +17,7 @@ fexc <- read_excel("01_data-input/wiiw/fexc.xlsx", sheet = "Data_clean")
 
 WDI <- read_excel("01_data-input/World Bank/WDI.xlsx", sheet = "Data_clean_extra", na = "..")
 
-Pop_edu <- read_csv("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU.csv", na = "..")
+Pop_edu <- read_excel("01_data-input/ILOSTAT/POP_XWAP_SEX_AGE_EDU_complete.xlsx", sheet = "Data_clean")
 
 #Cleaning ----
 Actrt <- activity_rate %>% 
@@ -118,8 +118,7 @@ WDI_data <- WDI %>%
          ISCED_7 = `Educational attainment, at least Master's or equivalent, population 25+, total (%) (cumulative)`,
          ISCED_8 = `Educational attainment, Doctoral or equivalent, population 25+, total (%) (cumulative)`,
          Life_exp = 21,
-         Fertility_rate = 22) %>% 
-  filter(Year %in% 2009:2019) %>% 
+         Fertility_rate = 22) %>%
   mutate(#Pop_edu_3 = ISCED_5/100,
          #Pop_edu_2 = (ISCED_3 - ISCED_5)/100, #here ISCED_4 and ISCED_5 are the same
          #Pop_edu_1 = (ISCED_1 - ISCED_3)/100,
@@ -134,20 +133,24 @@ data_final <- list(Emp_Nace, GVA_Nace, GVA_NCU,
 
 candidates <- reduce(data_final, full_join, by = join_by(NUTS, Name, Year)) %>%
   arrange(NUTS, Year) %>%
-  filter(Year %in% c(2009:2019)) %>%
   rename(Employment_abs = EMP_NACE_Total)
 
 Pop_edu_levels <-  Pop_edu %>% 
   filter(!NUTS == "AL00") %>% 
   arrange(NUTS, Year) %>% 
-  mutate(Pop_edu_1 = (Basic+`Less than basic`)/Total,
+  mutate(across(-c(NUTS, Name), as.numeric), 
+         Pop_edu_1 = (Basic+`Less than basic`)/Total,
          Pop_edu_2 = Intermediate/Total,
          Pop_edu_3 = Advanced/Total) %>% 
   select(-c(Total, Basic, `Less than basic`, Intermediate, Advanced))
 
 candidates_final <- candidates %>%
   mutate(Year = as.double(Year)) %>% 
-  full_join(Pop_edu_levels, by = c("NUTS", "Name", "Year"))
+  full_join(Pop_edu_levels, by = c("NUTS", "Name", "Year")) 
+  # group_by(NUTS) %>% 
+  # mutate(across(-c(Name, Year), lag)) %>% 
+  # ungroup() %>% 
+  # filter(Year %in% 2009:2019)
 
 #SAVING
 write.csv(candidates_final, file = here("02_intermediary-input", "extra_dataset.csv"), row.names = FALSE)

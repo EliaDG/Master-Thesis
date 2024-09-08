@@ -39,8 +39,7 @@ extra_rate <- extra %>%
 data_labour <- full_join(employment, unemployment, by = c("NUTS", "Name", "Year")) %>% 
   rbind(extra_rate) %>% 
   arrange(NUTS, Year) %>%
-  mutate(Year = as.numeric(Year)) %>% 
-  filter(Year %in% 2009:2019) %>% 
+  mutate(Year = as.numeric(Year)) %>%
   select(-Name)
 
 #SAVING

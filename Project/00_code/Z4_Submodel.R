@@ -12,9 +12,9 @@ GDP_capita_raw <- read_csv("03_final-input/dataset.csv") %>%
 GDPG_intervals <- GDP_capita_raw %>%
   pivot_wider(names_from = Year,
               values_from = GDP_capita) %>%
-  mutate(`2014` = (`2014`-`2009`)/`2009`,
-         `2019` = (`2019`-`2015`)/`2015`) %>%
-  select(NUTS, `2014`, `2019` ) %>%
+  mutate(`2010` = (`2014`-`2009`)/`2009`,
+         `2016` = (`2019`-`2015`)/`2015`) %>%
+  select(NUTS, `2010`, `2016` ) %>%
   pivot_longer(cols = -"NUTS",
                names_to = "Year",
                values_to = "GDP_growth") %>%
@@ -29,7 +29,7 @@ subdata <- inner_join(subdataset_amelia, GDPG_intervals, by = c("NUTS", "Year"))
 country_encoded <- model.matrix(~ Country- 1, data = subdata)[, -which(levels(subdata$Country) == "France")]
 colnames(country_encoded) <- gsub("^Country", "C_", colnames(country_encoded))
 
-Y_period <- model.matrix(~ Year- 1, data = subdata)[, -which(levels(subdata$Year) == "2014")]
+Y_period <- model.matrix(~ Year- 1, data = subdata)[, -which(levels(subdata$Year) == "2010")]
 
 subdata_encoded <- cbind(subdata, country_encoded, Y_period)
 subdata_encoded$Country <- NULL
@@ -51,31 +51,60 @@ subdatas_base <- subdata_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
          `CEE#GVA_services` = CEE*GVA_services,
          `CEE#GVA_public` = CEE*GVA_public,
-         `CEE#GVA_primary` = CEE*GVA_primary,
+         `CEE#GVA_agriculture` = CEE*GVA_agriculture,
+         `CEE#GVA_industry` = CEE*GVA_industry,
+         `CEE#GVA_construction` = CEE*GVA_construction,
          `Candidates#GVA_public` = Candidates*GVA_public,
-         `Candidates#GVA_primary` = Candidates*GVA_primary,
          `Candidates#GVA_services` = Candidates*GVA_services,
-         `CEE#Pop_edu_3` = CEE*Pop_edu_3,
-         `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
+         `Candidates#GVA_agriculture` = Candidates*GVA_agriculture,
+         `Candidates#GVA_industry` = Candidates*GVA_industry,
+         `Candidates#GVA_construction` = Candidates*GVA_construction,
+         `CEE#GDP_capita` = CEE*GDP_capita,
+         `Candidates#GDP_capita` = Candidates*GDP_capita) %>%  
   select(-c(Name, NUTS, starts_with("C_")))
+interaction <- grep("#", names(subdatas_base), value = TRUE)
 
-sub_base = bms(subdatas_base, burn=2e+06, iter=3e+06,
+# sub_base = bms(subdatas_base[,!names(subdatas_base) %in% interaction], burn=2e+06, iter=3e+06,
+#                 g="BRIC", mprior="random", mcmc="bd",
+#                 force.full.ols = TRUE, user.int=TRUE,
+#                 fixed.reg = YF)
+
+sub_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", "Candidates", interaction)], burn=2e+06, iter=3e+06,
+               g="BRIC", mprior="random", mcmc="bd",
+               force.full.ols = TRUE, user.int=TRUE, fixed.reg = YF)
+
+sub_base2 = bms(subdatas_base[,!names(subdatas_base) %in% interaction], burn=2e+06, iter=3e+06,
                 g="BRIC", mprior="random", mcmc="bd",
-                force.full.ols = TRUE, user.int=TRUE,
-                fixed.reg = YF)
+                force.full.ols = TRUE, user.int=TRUE,  fixed.reg = YF)
 
-sub_base1 = bms(subdatas_base, burn=2e+06, iter=3e+06,
+sub_base3 = bms(subdatas_base, burn=2e+06, iter=3e+06,
                g="BRIC", mprior="random", mcmc="bd.int",
                force.full.ols = TRUE, user.int=TRUE)
 
 subdatas_fix <- subdata_encoded %>%
+  mutate(`CEE#Capital` = CEE*Capital,
+         `CEE#GVA_services` = CEE*GVA_services,
+         `CEE#GVA_public` = CEE*GVA_public,
+         `CEE#GVA_agriculture` = CEE*GVA_agriculture,
+         `CEE#GVA_industry` = CEE*GVA_industry,
+         `CEE#GVA_construction` = CEE*GVA_construction,
+         `Candidates#GVA_public` = Candidates*GVA_public,
+         `Candidates#GVA_services` = Candidates*GVA_services,
+         `Candidates#GVA_agriculture` = Candidates*GVA_agriculture,
+         `Candidates#GVA_industry` = Candidates*GVA_industry,
+         `Candidates#GVA_construction` = Candidates*GVA_construction,
+         `CEE#GDP_capita` = CEE*GDP_capita,
+         `Candidates#GDP_capita` = Candidates*GDP_capita) %>%  
   select(-c(Name, NUTS, Candidates, CEE))
+interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
-sub_fix = bms(subdatas_fix, burn=2e+06, iter=3e+06,
+sub_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=2e+06, iter=3e+06,
                g="BRIC", mprior="random", mcmc="bd",
                force.full.ols = TRUE, user.int= TRUE,
                fixed.reg = TF)
 
-sub_fix1 = bms(subdatas_fix, burn=2e+06, iter=3e+06,
+sub_fix2 = bms(subdatas_fix, burn=2e+06, iter=3e+06,
               g="BRIC", mprior="random", mcmc="bd",
-              force.full.ols = TRUE, user.int= TRUE)
+              force.full.ols = TRUE, user.int= TRUE,
+              fixed.reg = TF)
+

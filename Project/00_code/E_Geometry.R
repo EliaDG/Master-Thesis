@@ -71,18 +71,19 @@ geom_NUTS2 <- rbind(NUTS2_2021, NUTS2_2013, NUTS2_extra_merged, XKO, MDA, BIH) %
 
 # Spatial related variables -----
 dataset_complete <- dataset %>%
-  filter(!NUTS %in% c("HR02", "HR05", "HR06", "HU11", "HU12", "LT01", "LT02", "UKI3",
-                      "UKI4", "UKI5" , "UKI6", "UKI7", "IE01", "IE02", "UKM2", "UKM3", "FI20")) %>% 
   full_join(geom_NUTS2, by = "NUTS") %>%
   st_as_sf(crs = "WGS84") %>% 
   mutate(Area = as.numeric(st_area(geometry))/1e6,
-         Candidates = ifelse(Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey"), "Yes", "No"),
-         CEE = ifelse(Country %in% c("Poland", "Czech Republic", "Slovakia", "Slovenia","Hungary", "Lithuania", "Latvia", "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus"), "Yes", "No"),
+         Candidates = ifelse(Country %in% c("Bosnia and Herzegovina", "Serbia", "North Macedonia", 
+                                            "Montenegro", "Albania", "Moldova", "Kosovo", "Turkey"), "Yes", "No"),
+         CEE = ifelse(Country %in% c("Poland", "Czech Republic", "Slovakia", 
+                                     "Slovenia","Hungary", "Lithuania", "Latvia", 
+                                     "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus"), "Yes", "No"),
          Capital = case_when(
            NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", 
-                       "HR05", "HR04", "HU11", "IE02", "IE06", "ITI4", "LT01", "NL32", "PL91", "PT17", 
+                       "HR04", "HU11", "IE02", "IE06", "ITI4", "NL32", "PL91", "PT17", 
                        "RO32", "RS11", "SE11", "SI04", "SK01", "TR51") ~ "Yes",
-           grepl("00", NUTS) | grepl("UKI", NUTS) | grepl("HU1", NUTS) ~ "Yes",
+           grepl("00", NUTS) | grepl("UKI", NUTS) ~ "Yes",
            TRUE ~ "No"),
          Coastal = case_when(
            NUTS %in% c("AL00", "BA00", "BE21", "BE25", "BG33", "BG34", "CY00", "DE50", "DE60", 
@@ -112,15 +113,15 @@ dataset_complete <- dataset %>%
                        "EL54", "EL61", "EL62", "EL63", "EL65", "ES11", "ES42", "ES43",
                        "ES61", "HU21", "HU22", "HU23", "HU31", "HU32", "HU33", "ITF3",
                        "ITF4", "ITF6", "ITG1", "PT11", "PT16", "PT18", "SK02", "SK03",
-                       "SK04", "UKK3", "UKL1") & Year %in% 2009:2013 ~ "Yes",
-           grepl("BG", NUTS) & Year %in% 2009:2013 
-           | grepl("MT", NUTS) & Year %in% 2009:2013 
-           | grepl("EE", NUTS) & Year %in% 2009:2013 
-           | grepl("LV", NUTS) & Year %in% 2009:2013
-           | grepl("LT", NUTS) & Year %in% 2009:2013
-           | grepl("PL", NUTS) & Year %in% 2009:2013
-           | grepl("RO", NUTS) & Year %in% 2009:2013
-           | grepl("SI", NUTS) & Year %in% 2009:2013 ~ "Yes",
+                       "SK04", "UKK3", "UKL1") & Year %in% 2008:2013 ~ "Yes",
+           grepl("BG", NUTS) & Year %in% 2008:2013 
+           | grepl("MT", NUTS) & Year %in% 2008:2013 
+           | grepl("EE", NUTS) & Year %in% 2008:2013 
+           | grepl("LV", NUTS) & Year %in% 2008:2013
+           | grepl("LT", NUTS) & Year %in% 2008:2013
+           | grepl("PL", NUTS) & Year %in% 2008:2013
+           | grepl("RO", NUTS) & Year %in% 2008:2013
+           | grepl("SI", NUTS) & Year %in% 2008:2013 ~ "Yes",
            grepl("HR", NUTS) & Year %in% 2013:2019 ~ "Yes",
            NUTS %in% c("BG31", "BG32", "BG33", "BG34", "BG41", "BG42",
                        "CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08",
@@ -132,7 +133,7 @@ dataset_complete <- dataset %>%
                        "PT11", "PT16", "PT18", "RO11", "RO12", "RO21", "RO22",
                        "RO31", "RO41", "RO42", "SI01", "SK02", "SK03", "SK04", "UKK3", "UKL1") & Year %in% 2014:2019 ~ "Yes",
            TRUE ~ "No"),
-         Euro = case_when(
+         Eurozone = case_when(
            Country %in% c("Austria", "Belgium", "Cyprus", "Finland",
                           "France", "Germany", "Greece", "Ireland", "Italy", 
                           "Luxembourg", "Malta", "Netherlands", "Portugal", 
@@ -162,7 +163,7 @@ Dist_BRUX <- geom_NUTS2 %>%
 
 dataset_final <- dataset_complete %>% 
   full_join(Dist_BRUX, by = "NUTS") %>%
-  mutate(across(c(Capital, Coastal, Island, Objective_1, Euro, CEE, Candidates),
+  mutate(across(c(Capital, Coastal, Island, Objective_1, Eurozone, CEE, Candidates),
                 ~ as.numeric(ifelse(. == "Yes", 1, ifelse(. == "No", 0, .))))) %>%
   st_set_geometry(NULL) %>% 
   as.data.frame()

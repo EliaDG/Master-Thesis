@@ -147,8 +147,11 @@ ardeco_data <- Reduce(function(x, y) full_join(x, y, by = c("NUTS", "Name", "Yea
 
 ardeco <- ardeco_data %>%
   full_join(Emp_Nace, by = c("NUTS", "Year")) %>% # Second round of merging because of Name discrepancy
-  arrange(NUTS, Year) %>%
-  filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019))
+  arrange(NUTS, Year)
+  # group_by(NUTS) %>% 
+  # mutate(across(-c(Name, Year), lag)) %>%
+  # ungroup() %>% 
+  # filter(!NUTS %in% c("AL01", "AL02", "AL03"), Year %in% c(2009:2019))
 
 #SAVING
 write.csv(ardeco, file = here("02_intermediary-input", "ardeco_dataset.csv"), row.names = FALSE)

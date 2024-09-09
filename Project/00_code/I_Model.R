@@ -107,7 +107,7 @@ mfls_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mc
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
 # TEST: SAR+BMA -----
-WL <- readRDS("03_final-input/WL.rds")
+WL <- readRDS("03_final-input/WL_new.rds")
 datas_spat <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
          `CEE#GVA_services` = CEE*GVA_services,

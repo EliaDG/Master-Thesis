@@ -73,60 +73,50 @@ W5 <- nb2listw(k5, style = "W", zero.policy = TRUE)
 
 
 #Spatial Filtering -----
-idw1 <- W1
-idw1$neighbours <- rep(W1$neighbours, each = 11);
-idw1$weights <- rep(W1$weights, each = 11)
-
-attr(idw1$neighbours, "class") <- "nb"
-attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
-attr(idw1$neighbours, "sym") <- TRUE
-attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
-
-nb1 <- idw1$neighbours
-
-idw2 <- W2
-idw2$neighbours <- rep(W2$neighbours, each = 11);
-idw2$weights <- rep(W2$weights, each = 11)
-
-attr(idw2$neighbours, "class") <- "nb"
-attr(idw2$neighbours, "region.id") <- rep(attr(W2$neighbours, "region.id"), each = 11)
-attr(idw2$neighbours, "sym") <- TRUE
-attr(idw2$neighbours, "call") <- attr(W2$neighbours, "call")
-
-nb2 <- idw2$neighbours
-
-idw3 <- W3
-idw3$neighbours <- rep(W3$neighbours, each = 11);
-idw3$weights <- rep(W3$weights, each = 11)
-
-attr(idw3$neighbours, "class") <- "nb"
-attr(idw3$neighbours, "region.id") <- rep(attr(W3$neighbours, "region.id"), each = 11)
-attr(idw3$neighbours, "sym") <- TRUE
-attr(idw3$neighbours, "call") <- attr(W3$neighbours, "call")
-
-nb3 <- idw3$neighbours
-
-idw4 <- W4
-idw4$neighbours <- rep(W4$neighbours, each = 11);
-idw4$weights <- rep(W4$weights, each = 11)
-
-attr(idw4$neighbours, "class") <- "nb"
-attr(idw4$neighbours, "region.id") <- rep(attr(W4$neighbours, "region.id"), each = 11)
-attr(idw4$neighbours, "sym") <- TRUE
-attr(idw4$neighbours, "call") <- attr(W4$neighbours, "call")
-
-nb4 <- idw4$neighbours
-
-idw5 <- W5
-idw5$neighbours <- rep(W5$neighbours, each = 11);
-idw5$weights <- rep(W5$weights, each = 11)
-
-attr(idw5$neighbours, "class") <- "nb"
-attr(idw5$neighbours, "region.id") <- rep(attr(W5$neighbours, "region.id"), each = 11)
-attr(idw5$neighbours, "sym") <- TRUE
-attr(idw5$neighbours, "call") <- attr(W5$neighbours, "call")
-
-nb5 <- idw5$neighbours
+# idw1 <- W1
+# idw1$neighbours <- rep(W1$neighbours, each = 11);
+# idw1$weights <- rep(W1$weights, each = 11)
+# 
+# attr(idw1$neighbours, "class") <- "nb"
+# attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
+# attr(idw1$neighbours, "sym") <- TRUE
+# attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
+# 
+# idw2 <- W2
+# idw2$neighbours <- rep(W2$neighbours, each = 11);
+# idw2$weights <- rep(W2$weights, each = 11)
+# 
+# attr(idw2$neighbours, "class") <- "nb"
+# attr(idw2$neighbours, "region.id") <- rep(attr(W2$neighbours, "region.id"), each = 11)
+# attr(idw2$neighbours, "sym") <- TRUE
+# attr(idw2$neighbours, "call") <- attr(W2$neighbours, "call")
+# 
+# idw3 <- W3
+# idw3$neighbours <- rep(W3$neighbours, each = 11);
+# idw3$weights <- rep(W3$weights, each = 11)
+# 
+# attr(idw3$neighbours, "class") <- "nb"
+# attr(idw3$neighbours, "region.id") <- rep(attr(W3$neighbours, "region.id"), each = 11)
+# attr(idw3$neighbours, "sym") <- TRUE
+# attr(idw3$neighbours, "call") <- attr(W3$neighbours, "call")
+# 
+# idw4 <- W4
+# idw4$neighbours <- rep(W4$neighbours, each = 11);
+# idw4$weights <- rep(W4$weights, each = 11)
+# 
+# attr(idw4$neighbours, "class") <- "nb"
+# attr(idw4$neighbours, "region.id") <- rep(attr(W4$neighbours, "region.id"), each = 11)
+# attr(idw4$neighbours, "sym") <- TRUE
+# attr(idw4$neighbours, "call") <- attr(W4$neighbours, "call")
+# 
+# idw5 <- W5
+# idw5$neighbours <- rep(W5$neighbours, each = 11);
+# idw5$weights <- rep(W5$weights, each = 11)
+# 
+# attr(idw5$neighbours, "class") <- "nb"
+# attr(idw5$neighbours, "region.id") <- rep(attr(W5$neighbours, "region.id"), each = 11)
+# attr(idw5$neighbours, "sym") <- TRUE
+# attr(idw5$neighbours, "call") <- attr(W5$neighbours, "call")
 
 data_encoded <- read_csv("03_final-input/encoded_dataset.csv")
 datas_spat <- data_encoded %>%
@@ -147,20 +137,21 @@ datas_spat <- data_encoded %>%
   as.data.frame()
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
-y <- as.data.frame(datas_spat[, 1, drop = F])
-yFilt1 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
-                           nb = nb1, glist = idw1$weights, ExactEV = TRUE)
-yFilt2 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
-                           nb = nb2, glist = idw2$weights, ExactEV = TRUE)
-yFilt3 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
-                           nb = nb3, glist = idw3$weights, style = "B", ExactEV = FALSE)
-yFilt4 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
-                           nb = nb4, glist = idw4$weights, style = "B", ExactEV = FALSE)
-yFilt5 <- SpatialFiltering(datas_spat[, 1] ~ 1, ~-1, data = y,
-                           nb = nb5, glist = idw5$weights, style = "W", ExactEV = TRUE)
+y <- as.data.frame(datas_spat[3011:3311, 1, drop = F])
+yFilt1 <- SpatialFiltering(datas_spat[3011:3311, 1] ~ 1, ~-1, data = y,
+                           nb = W1$neighbours, glist = W1$weights, ExactEV = TRUE)
+yFilt2 <- SpatialFiltering(datas_spat[3011:3311, 1] ~ 1, ~-1, data = y,
+                           nb = W2$neighbours, glist = W2$weights, ExactEV = TRUE)
+yFilt3 <- SpatialFiltering(datas_spat[3011:3311, 1] ~ 1, ~-1, data = y,
+                           nb = W3$neighbours, glist = W3$weights, style = "B", ExactEV = TRUE)
+yFilt4 <- SpatialFiltering(datas_spat[3011:3311, 1] ~ 1, ~-1, data = y,
+                           nb = W4$neighbours, glist = W4$weights, style = "B", ExactEV = TRUE)
+yFilt5 <- SpatialFiltering(datas_spat[3011:3311, 1] ~ 1, ~-1, data = y,
+                           nb = W5$neighbours, glist = W5$weights, style = "W", ExactEV = TRUE)
 
-WL <- list(Col_A = fitted(yFilt1), Col_B = fitted(yFilt2), Col_C = fitted(yFilt3), Col_D = fitted(yFilt4), Col_E = fitted(yFilt5))
+WL <- list(Col_A = fitted(yFilt1), Col_B = fitted(yFilt2), Col_E = fitted(yFilt5), Col_C = fitted(yFilt3), Col_D = fitted(yFilt4))
 sapply(WL, function(x) any(is.na(x)))
+WL_repeated <- lapply(WL, function(x) matrix(rep(x, 11), ncol = ncol(x)))
 
 # Visualization queen continuity network -------
 queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))
@@ -169,6 +160,11 @@ ggplot(data = geom) +
   theme_light() +
   geom_sf(data = queen_lines, color = "red", size = 0.8)
 #coord_sf(xlim = c(18, 23), ylim = c(43, 48)) to zoom in
-
+queen_lines_k <- listw2lines(W5, coords = st_centroid(geom$geometry))
+ggplot(data = geom) +
+  geom_sf(color = "black") +
+  theme_light() +
+  geom_sf(data = queen_lines, color = "green", size = 0.8)
 #SAVING
-saveRDS(WL, file = "03_final-input/WL.rds")
+saveRDS(WL_repeated, file = "03_final-input/WL_new.rds")
+class(WL)

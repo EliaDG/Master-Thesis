@@ -10,9 +10,7 @@ dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>%
   group_by(NUTS) %>% 
-  mutate(across(-c(Name, Country, Year, GDP_growth,
-                   Pop_growth, Pop_edu_1, Pop_edu_2, Pop_edu_3,
-                   Fertility_rate, Life_exp, Migration_rate,
+  mutate(across(-c(Name, Country, Year, GDP_growth, Pop_growth, 
                    Candidates, CEE, Capital, Coastal, Island, Objective_1, Eurozone), ~ lag(.))) %>%
   ungroup() %>% 
   filter(Year %in% 2009:2019) %>% 
@@ -29,7 +27,7 @@ data_encoded$Country <- NULL
 data_encoded$Year <- NULL
 colnames(data_encoded) <- make.names(colnames(data_encoded))
 
-write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
+#write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
 
 CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bulgaria", 
         "C_Croatia", "C_Cyprus", "C_Czech.Republic", "C_Denmark", "C_Estonia", "C_Finland", 
@@ -63,18 +61,18 @@ datas_base <- data_encoded %>%
 
 interaction <- grep("#", names(datas_base), value = TRUE)
 # mfls_base = bms(datas_base[,!names(datas_base) %in% c("CEE", "Island", "Capital", "Eurozone", "Objective_1", "Coastal", "Candidates", interaction)],
-#                 burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd",
+#                 burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd",
 #                 user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
 mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
-                 burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+                 burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                  user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=2e+06, iter=3e+06,
+mfls_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd",
                  user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_base3 = bms(datas_base, burn=2e+06, iter=3e+06,
+mfls_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd.int",
                  user.int=TRUE, force.full.ols = TRUE)
 
@@ -97,17 +95,21 @@ datas_fix <- data_encoded %>%
 
 interaction <- grep("#", names(datas_fix), value = TRUE)
 # mfls_fix = bms(datas_fix[,!names(datas_fix) %in% c("Capital", "Island", "Eurozone", "Objective_1", "Coastal", interaction)],
-#                burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd",
+#                burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd",
 #                user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
-mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
-mfls_fix2 = bms(datas_fix, burn=2e+06, iter=3e+06, g="BRIC", mprior="random", mcmc="bd", 
+mfls_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
 # TEST: SAR+BMA -----
-WL <- readRDS("03_final-input/WL_new.rds")
+WL_decade <- readRDS("03_final-input/WL_10.rds")
+WL_decade_ext <- lapply(WL_decade, repeat_rows)
+
+WL_annual <- readRDS("03_final-input/WL_1.rds")
+
 datas_spat <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
          `CEE#GVA_services` = CEE*GVA_services,
@@ -126,26 +128,40 @@ datas_spat <- data_encoded %>%
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
 # mfls_spat = spatFilt.bms(X.data = datas_spat[,!names(datas_base) %in% c("CEE", "Island", "Capital", "Eurozone", "Objective_1", "Coastal", "Candidates", interaction)], WList = WL, 
-#                          burn = 2e+06,iter = 3e+06,
+#                          burn=3e+06, iter=10e+06,
 #                          nmodel=100, mcmc="bd", g="BRIC", 
 #                          mprior="random", user.int = TRUE)
-mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL, 
+mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
                          burn = 2e+06,iter = 3e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
-mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL, 
+mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
                          burn = 2e+06,iter = 3e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
-mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL, 
+mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
                          burn = 2e+06,iter = 3e+06,
                          nmodel=100, mcmc="bd.int", g="BRIC", 
                          mprior="random", user.int = TRUE)
+
+alt_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_annual, 
+                          burn = 2e+06,iter = 3e+06,
+                          nmodel=100, mcmc="bd", g="BRIC", 
+                          mprior="random", user.int = TRUE)
+alt_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_annual, 
+                          burn = 2e+06,iter = 3e+06,
+                          nmodel=100, mcmc="bd", g="BRIC", 
+                          mprior="random", user.int = TRUE)
+alt_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_annual, 
+                          burn = 2e+06,iter = 3e+06,
+                          nmodel=100, mcmc="bd.int", g="BRIC", 
+                          mprior="random", user.int = TRUE)
 
 # ### SAVING
 rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
                           "mfls_fix1", "mfls_fix2",
                           "mfls_spat1", "mfls_spat2", "mfls_spat3",
                           "sub_base1", "sub_base2", "sub_base3",
-                          "sub_fix1", "sub_fix2")))
-save.image(file = "Models_1.RData")
+                          "sub_fix1", "sub_fix2",
+                          "sub_spat1", "sub_spat2", "sub_spat3")))
+save.image(file = "Models.RData")

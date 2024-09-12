@@ -27,7 +27,7 @@ data_encoded$Country <- NULL
 data_encoded$Year <- NULL
 colnames(data_encoded) <- make.names(colnames(data_encoded))
 
-#write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
+# write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
 
 CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bulgaria", 
         "C_Croatia", "C_Cyprus", "C_Czech.Republic", "C_Denmark", "C_Estonia", "C_Finland", 
@@ -60,9 +60,6 @@ datas_base <- data_encoded %>%
   select(-c(Name, NUTS, starts_with("C_")))
 
 interaction <- grep("#", names(datas_base), value = TRUE)
-# mfls_base = bms(datas_base[,!names(datas_base) %in% c("CEE", "Island", "Capital", "Eurozone", "Objective_1", "Coastal", "Candidates", interaction)],
-#                 burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd",
-#                 user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
 mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
                  burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
@@ -94,9 +91,6 @@ datas_fix <- data_encoded %>%
   select(-c(Name, NUTS, Candidates, CEE))
 
 interaction <- grep("#", names(datas_fix), value = TRUE)
-# mfls_fix = bms(datas_fix[,!names(datas_fix) %in% c("Capital", "Island", "Eurozone", "Objective_1", "Coastal", interaction)],
-#                burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd",
-#                user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
 mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
@@ -127,37 +121,20 @@ datas_spat <- data_encoded %>%
   select(-c(Name, NUTS, starts_with("C_")))
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
-# mfls_spat = spatFilt.bms(X.data = datas_spat[,!names(datas_base) %in% c("CEE", "Island", "Capital", "Eurozone", "Objective_1", "Coastal", "Candidates", interaction)], WList = WL, 
-#                          burn=3e+06, iter=10e+06,
-#                          nmodel=100, mcmc="bd", g="BRIC", 
-#                          mprior="random", user.int = TRUE)
 mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
-                         burn = 2e+06,iter = 3e+06,
+                         burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
 mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
-                         burn = 2e+06,iter = 3e+06,
+                         burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
 mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
-                         burn = 2e+06,iter = 3e+06,
+                         burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd.int", g="BRIC", 
                          mprior="random", user.int = TRUE)
 
-alt_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_annual, 
-                          burn = 2e+06,iter = 3e+06,
-                          nmodel=100, mcmc="bd", g="BRIC", 
-                          mprior="random", user.int = TRUE)
-alt_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_annual, 
-                          burn = 2e+06,iter = 3e+06,
-                          nmodel=100, mcmc="bd", g="BRIC", 
-                          mprior="random", user.int = TRUE)
-alt_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_annual, 
-                          burn = 2e+06,iter = 3e+06,
-                          nmodel=100, mcmc="bd.int", g="BRIC", 
-                          mprior="random", user.int = TRUE)
-
-# ### SAVING
+### SAVING
 rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
                           "mfls_fix1", "mfls_fix2",
                           "mfls_spat1", "mfls_spat2", "mfls_spat3",

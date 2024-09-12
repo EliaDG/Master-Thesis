@@ -62,11 +62,6 @@ subdatas_base <- subdata_encoded %>%
   select(-c(Name, NUTS, starts_with("C_")))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
-# sub_base = bms(subdatas_base[,!names(subdatas_base) %in% interaction], burn=3e+06, iter=10e+06,
-#                 g="BRIC", mprior="random", mcmc="bd",
-#                 force.full.ols = TRUE, user.int=TRUE,
-#                 fixed.reg = YF)
-
 sub_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", "Candidates", interaction)], burn=3e+06, iter=10e+06,
                g="BRIC", mprior="random", mcmc="bd",
                force.full.ols = TRUE, user.int=TRUE,
@@ -129,14 +124,14 @@ subdatas_spat <- subdata_encoded %>%
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 sub_spat1 = spatFilt.bms(X.data = subdatas_spat[,!names(subdatas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_panel, 
-                          burn = 2e+06,iter = 3e+06,
+                          burn = 3e+06,iter = 10e+06,
                           nmodel=100, mcmc="bd", g="BRIC", 
                           mprior="random", user.int = TRUE)
 sub_spat2 = spatFilt.bms(X.data = subdatas_spat[,!names(subdatas_spat) %in% interaction], WList = WL_panel, 
-                          burn = 2e+06,iter = 3e+06,
+                          burn = 3e+06,iter = 10e+06,
                           nmodel=100, mcmc="bd", g="BRIC", 
                           mprior="random", user.int = TRUE)
 sub_spat3 = spatFilt.bms(X.data = subdatas_spat, WList = WL_panel, 
-                          burn = 2e+06,iter = 3e+06,
+                          burn = 3e+06,iter = 10e+06,
                           nmodel=100, mcmc="bd.int", g="BRIC", 
                           mprior="random", user.int = TRUE)

@@ -135,10 +135,10 @@ mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext,
                          mprior="random", user.int = TRUE)
 
 ### SAVING
-rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
-                          "mfls_fix1", "mfls_fix2",
-                          "mfls_spat1", "mfls_spat2", "mfls_spat3",
-                          "sub_base1", "sub_base2", "sub_base3",
-                          "sub_fix1", "sub_fix2",
-                          "sub_spat1", "sub_spat2", "sub_spat3")))
-save.image(file = "Models.RData")
+# rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
+#                           "mfls_fix1", "mfls_fix2",
+#                           "mfls_spat1", "mfls_spat2", "mfls_spat3",
+#                           "sub_base1", "sub_base2", "sub_base3",
+#                           "sub_fix1", "sub_fix2",
+#                           "sub_spat1", "sub_spat2", "sub_spat3")))
+# save.image(file = "04_final-output/Models.RData")

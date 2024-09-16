@@ -68,6 +68,12 @@ mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", inte
 pmp.bma(mfls_base1)[1,]
 colSums(pmp.bma(mfls_base1)[1:25,])
 colSums(pmp.bma(mfls_base1)[1:50,])
+fullmodel.ssq(mfls_base1)
+lm_base1 <- lm(model.frame(as.zlm(mfls_base1)))
+
+density(mfls_base1, reg = "GDP_capita", addons = "mle")
+density(mfls_base2, reg = "GDP_capita", addons = "mle")
+density(mfls_base3, reg = "GDP_capita", addons = "mle")
 
 mfls_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd",
@@ -76,6 +82,9 @@ mfls_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=3e+06, 
 pmp.bma(mfls_base2)[1,]
 colSums(pmp.bma(mfls_base2)[1:25,])
 colSums(pmp.bma(mfls_base2)[1:50,])
+fullmodel.ssq(mfls_base2)
+lm_base2 <- lm(model.frame(as.zlm(mfls_base2)))
+
 
 mfls_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd.int",
@@ -84,6 +93,8 @@ mfls_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
 pmp.bma(mfls_base3)[1,]
 colSums(pmp.bma(mfls_base3)[1:25,])
 colSums(pmp.bma(mfls_base3)[1:50,])
+fullmodel.ssq(mfls_base3)
+lm_base3 <- lm(model.frame(as.zlm(mfls_base3)))
 
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
@@ -110,6 +121,8 @@ mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter
 pmp.bma(mfls_fix1)[1,]
 colSums(pmp.bma(mfls_fix1)[1:25,])
 colSums(pmp.bma(mfls_fix1)[1:50,])
+fullmodel.ssq(mfls_fix1)
+lm_fix1 <- lm(model.frame(as.zlm(mfls_fix1)))
 
 mfls_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
@@ -117,6 +130,8 @@ mfls_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="random", m
 pmp.bma(mfls_fix2)[1,]
 colSums(pmp.bma(mfls_fix2)[1:25,])
 colSums(pmp.bma(mfls_fix2)[1:50,])
+fullmodel.ssq(mfls_fix2)
+lm_fix2 <- lm(model.frame(as.zlm(mfls_fix2)))
 
 # TEST: SAR+BMA -----
 WL_decade <- readRDS("03_final-input/WL_10.rds")
@@ -149,6 +164,8 @@ mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", 
 pmp.bma(mfls_spat1)[1,]
 colSums(pmp.bma(mfls_spat1)[1:25,])
 colSums(pmp.bma(mfls_spat1)[1:50,])
+fullmodel.ssq(mfls_spat1)
+lm_spat1 <- lm(model.frame(as.zlm(mfls_spat1)))
 
 mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
@@ -158,6 +175,8 @@ mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interacti
 pmp.bma(mfls_spat2)[1,]
 colSums(pmp.bma(mfls_spat2)[1:25,])
 colSums(pmp.bma(mfls_spat2)[1:50,])
+fullmodel.ssq(mfls_spat2)
+lm_spat2 <- lm(model.frame(as.zlm(mfls_spat2)))
 
 mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
@@ -167,6 +186,8 @@ mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext,
 pmp.bma(mfls_spat3)[1,]
 colSums(pmp.bma(mfls_spat3)[1:25,])
 colSums(pmp.bma(mfls_spat3)[1:50,])
+fullmodel.ssq(mfls_spat3)
+lm_spat3 <- lm(model.frame(as.zlm(mfls_spat3)))
 
 ### SAVING
 rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",

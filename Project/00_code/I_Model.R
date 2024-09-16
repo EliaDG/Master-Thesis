@@ -27,7 +27,7 @@ data_encoded$Country <- NULL
 data_encoded$Year <- NULL
 colnames(data_encoded) <- make.names(colnames(data_encoded))
 
-# write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
+#write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
 
 CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bulgaria", 
         "C_Croatia", "C_Cyprus", "C_Czech.Republic", "C_Denmark", "C_Estonia", "C_Finland", 
@@ -65,13 +65,25 @@ mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", inte
                  burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                  user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
+pmp.bma(mfls_base1)[1,]
+colSums(pmp.bma(mfls_base1)[1:25,])
+colSums(pmp.bma(mfls_base1)[1:50,])
+
 mfls_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd",
                  user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
+pmp.bma(mfls_base2)[1,]
+colSums(pmp.bma(mfls_base2)[1:25,])
+colSums(pmp.bma(mfls_base2)[1:50,])
+
 mfls_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd.int",
                  user.int=TRUE, force.full.ols = TRUE)
+
+pmp.bma(mfls_base3)[1,]
+colSums(pmp.bma(mfls_base3)[1:25,])
+colSums(pmp.bma(mfls_base3)[1:50,])
 
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
@@ -95,8 +107,16 @@ interaction <- grep("#", names(datas_fix), value = TRUE)
 mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
+pmp.bma(mfls_fix1)[1,]
+colSums(pmp.bma(mfls_fix1)[1:25,])
+colSums(pmp.bma(mfls_fix1)[1:50,])
+
 mfls_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
+
+pmp.bma(mfls_fix2)[1,]
+colSums(pmp.bma(mfls_fix2)[1:25,])
+colSums(pmp.bma(mfls_fix2)[1:50,])
 
 # TEST: SAR+BMA -----
 WL_decade <- readRDS("03_final-input/WL_10.rds")
@@ -125,20 +145,34 @@ mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", 
                          burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
+
+pmp.bma(mfls_spat1)[1,]
+colSums(pmp.bma(mfls_spat1)[1:25,])
+colSums(pmp.bma(mfls_spat1)[1:50,])
+
 mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
+
+pmp.bma(mfls_spat2)[1,]
+colSums(pmp.bma(mfls_spat2)[1:25,])
+colSums(pmp.bma(mfls_spat2)[1:50,])
+
 mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd.int", g="BRIC", 
                          mprior="random", user.int = TRUE)
 
+pmp.bma(mfls_spat3)[1,]
+colSums(pmp.bma(mfls_spat3)[1:25,])
+colSums(pmp.bma(mfls_spat3)[1:50,])
+
 ### SAVING
-# rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
-#                           "mfls_fix1", "mfls_fix2",
-#                           "mfls_spat1", "mfls_spat2", "mfls_spat3",
-#                           "sub_base1", "sub_base2", "sub_base3",
-#                           "sub_fix1", "sub_fix2",
-#                           "sub_spat1", "sub_spat2", "sub_spat3")))
-# save.image(file = "04_final-output/Models.RData")
+rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
+                          "mfls_fix1", "mfls_fix2",
+                          "mfls_spat1", "mfls_spat2", "mfls_spat3",
+                          "sub_base1", "sub_base2", "sub_base3",
+                          "sub_fix1", "sub_fix2",
+                          "sub_spat1", "sub_spat2", "sub_spat3")))
+save.image(file = "04_final-output/Models.RData")

@@ -81,7 +81,7 @@ dataset_complete <- dataset %>%
                                      "Estonia", "Croatia", "Bulgaria", "Romania", "Cyprus"), "Yes", "No"),
          Capital = case_when(
            NUTS %in% c("AT13", "BE10", "BG41", "CZ01", "DE30", "DK01", "EL30", "ES30", "FI1B", "FR10", 
-                       "HR04", "HU11", "IE02", "IE06", "ITI4", "NL32", "PL91", "PT17", 
+                       "HR04", "HU10", "IE02", "IE06", "ITI4", "NL32", "PL91", "PT17", 
                        "RO32", "RS11", "SE11", "SI04", "SK01", "TR51") ~ "Yes",
            grepl("00", NUTS) | grepl("UKI", NUTS) ~ "Yes",
            TRUE ~ "No"),
@@ -105,7 +105,6 @@ dataset_complete <- dataset %>%
            TRUE ~ "No"),
          Island = case_when(
            NUTS %in% c("CY00", "DK01", "DK02", "EL41", "EL42", "EL43", "EL62", "ES53", "FI20", "FRM0", "ITG1", "ITG2", "MT00") ~ "Yes",
-           grepl("IE", NUTS) | grepl("UK", NUTS) ~ "Yes",
            TRUE ~ "No"),
          Objective_1 = case_when(
            NUTS %in% c("CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08", "DE40",

@@ -69,7 +69,10 @@ pmp.bma(mfls_base1)[1,]
 colSums(pmp.bma(mfls_base1)[1:25,])
 colSums(pmp.bma(mfls_base1)[1:50,])
 fullmodel.ssq(mfls_base1)
-lm_base1 <- lm(model.frame(as.zlm(mfls_base1)))
+lm_base1 <- lm(model.frame(as.zlm(mfls_base1), model = 1))
+lm_res_base1 <- residuals(lm_base1)
+moran.test(lm_res_base1, idw1)
+shapiro.test(lm_res_base1)
 
 density(mfls_base1, reg = "GDP_capita", addons = "mle")
 density(mfls_base2, reg = "GDP_capita", addons = "mle")
@@ -83,8 +86,10 @@ pmp.bma(mfls_base2)[1,]
 colSums(pmp.bma(mfls_base2)[1:25,])
 colSums(pmp.bma(mfls_base2)[1:50,])
 fullmodel.ssq(mfls_base2)
-lm_base2 <- lm(model.frame(as.zlm(mfls_base2)))
-
+lm_base2 <- lm(model.frame(as.zlm(mfls_base2), model = 1))
+lm_res_base2 <- residuals(lm_base2)
+moran.test(lm_res_base2, idw1)
+shapiro.test(lm_res_base2)
 
 mfls_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd.int",
@@ -94,7 +99,10 @@ pmp.bma(mfls_base3)[1,]
 colSums(pmp.bma(mfls_base3)[1:25,])
 colSums(pmp.bma(mfls_base3)[1:50,])
 fullmodel.ssq(mfls_base3)
-lm_base3 <- lm(model.frame(as.zlm(mfls_base3)))
+lm_base3 <- lm(model.frame(as.zlm(mfls_base3), model = 1))
+lm_res_base3 <- residuals(lm_base3)
+moran.test(lm_res_base3, idw1)
+shapiro.test(lm_res_base3)
 
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
@@ -122,7 +130,10 @@ pmp.bma(mfls_fix1)[1,]
 colSums(pmp.bma(mfls_fix1)[1:25,])
 colSums(pmp.bma(mfls_fix1)[1:50,])
 fullmodel.ssq(mfls_fix1)
-lm_fix1 <- lm(model.frame(as.zlm(mfls_fix1)))
+lm_fix1 <- lm(model.frame(as.zlm(mfls_fix1), model = 1))
+lm_res_fix1 <- residuals(lm_fix1)
+moran.test(lm_res_fix1, idw1)
+shapiro.test(lm_res_fix1)
 
 mfls_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
@@ -131,13 +142,22 @@ pmp.bma(mfls_fix2)[1,]
 colSums(pmp.bma(mfls_fix2)[1:25,])
 colSums(pmp.bma(mfls_fix2)[1:50,])
 fullmodel.ssq(mfls_fix2)
-lm_fix2 <- lm(model.frame(as.zlm(mfls_fix2)))
+lm_fix2 <- lm(model.frame(as.zlm(mfls_fix2), model = 1))
+lm_res_fix2 <- residuals(lm_fix2)
+moran.test(lm_res_fix2, idw1)
+shapiro.test(lm_res_fix2)
 
 # TEST: SAR+BMA -----
 WL_decade <- readRDS("03_final-input/WL_10.rds")
 WL_decade_ext <- lapply(WL_decade, repeat_rows)
-
-WL_annual <- readRDS("03_final-input/WL_1.rds")
+# idw1 <- W1
+# idw1$neighbours <- rep(W1$neighbours, each = 11);
+# idw1$weights <- rep(W1$weights, each = 11)
+# 
+# attr(idw1$neighbours, "class") <- "nb"
+# attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
+# attr(idw1$neighbours, "sym") <- TRUE
+# attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
 
 datas_spat <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
@@ -165,7 +185,9 @@ pmp.bma(mfls_spat1)[1,]
 colSums(pmp.bma(mfls_spat1)[1:25,])
 colSums(pmp.bma(mfls_spat1)[1:50,])
 fullmodel.ssq(mfls_spat1)
-lm_spat1 <- lm(model.frame(as.zlm(mfls_spat1)))
+lm_spat1 <- lm(model.frame(as.zlm(mfls_spat1), model = 1))
+lm_res_spat1 <- residuals(lm_spat1)
+shapiro.test(lm_res_spat1)
 
 mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
@@ -176,7 +198,9 @@ pmp.bma(mfls_spat2)[1,]
 colSums(pmp.bma(mfls_spat2)[1:25,])
 colSums(pmp.bma(mfls_spat2)[1:50,])
 fullmodel.ssq(mfls_spat2)
-lm_spat2 <- lm(model.frame(as.zlm(mfls_spat2)))
+lm_spat2 <- lm(model.frame(as.zlm(mfls_spat2), model = 1))
+lm_res_spat2 <- residuals(lm_spat2)
+shapiro.test(lm_res_spat2)
 
 mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
@@ -187,7 +211,9 @@ pmp.bma(mfls_spat3)[1,]
 colSums(pmp.bma(mfls_spat3)[1:25,])
 colSums(pmp.bma(mfls_spat3)[1:50,])
 fullmodel.ssq(mfls_spat3)
-lm_spat3 <- lm(model.frame(as.zlm(mfls_spat3)))
+lm_spat3 <- lm(model.frame(as.zlm(mfls_spat3), model = 1))
+lm_res_spat3 <- residuals(lm_spat3)
+shapiro.test(lm_res_spat3)
 
 ### SAVING
 rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",

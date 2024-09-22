@@ -10,7 +10,6 @@ subdataset_amelia <- read_csv("03_final-input/dataset_amelia.csv") %>%
   select(-GDP_growth)
 GDP_capita_raw <- read_csv("03_final-input/dataset.csv") %>%
   select(NUTS, Year, GDP_capita)
-W1 <- readRDS("03_final-input/idw_cesee.rds")
 
 # HOT ONE ENCODING -----
 GDP_decade <- GDP_capita_raw %>%

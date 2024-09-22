@@ -9,145 +9,85 @@ source("00_code/__functions.R")
 geom <- readRDS("03_final-input/geometries.rds")
 data <- read_csv("03_final-input/dataset_amelia.csv") %>% 
   select(NUTS, Name, Year, Pop_edu_3, GDP_capita) %>% 
-  filter(Year %in% c(2009:2019))
+  #filter(Year %in% c(2009:2019)) %>% 
+  filter(Year == 2009)
+load("04_final-output/Models-decade.RData")
+W1 <- readRDS("03_final-input/idw.rds")
+idw1 <- W1
+idw1$neighbours <- rep(W1$neighbours, each = 11);
+idw1$weights <- rep(W1$weights, each = 11)
+
+attr(idw1$neighbours, "class") <- "nb"
+attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
+attr(idw1$neighbours, "sym") <- TRUE
+attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
+
 
 # DISTRIBUTION COEFF -------
-posterior_means <- coef(mfls_base3, exact = TRUE)
-tertiary_mean <- posterior_means["GDP_capita",2]
-tertiary_values <- data$GDP_capita
-tertiary_contribution <- tertiary_mean * tertiary_values %>% 
+posterior_means <- coef(dec_base3, exact = TRUE)
+var_mean <- posterior_means["Pop_edu_3",2]
+var_values <- data$Pop_edu_3
+variable <- var_mean * var_values %>% 
   as.data.frame()
 
-dataset <- cbind(data, tertiary_contribution) %>% 
+data.plot <- cbind(data, variable) %>% 
   full_join(geom, by = "NUTS") %>% 
   rename(pred = ".") %>%
-  group_by(NUTS) %>%
-  mutate(pred_average = mean(pred)) %>%
-  ungroup() %>%
-  filter(Year == 2019) %>% 
-  st_as_sf() %>%
-  mutate(pred_bin = cut(pred_average, 
-                        breaks = 4, 
-                        labels = c("Low", "Medium-Low", "Medium-High", "High")))
+  # group_by(NUTS) %>%
+  # mutate(pred_average = mean(pred)) %>%
+  # ungroup() %>%
+  #filter(Year == 2019) %>% 
+  st_as_sf() %>% 
+  mutate(pred_bin = cut(pred, breaks = 5, labels = FALSE))
 
+breaks_seq <- seq(min(data.plot$pred, na.rm = TRUE), max(data.plot$pred, na.rm = TRUE), length.out = 6)
+labels_seq <- sprintf("%.2f to %.2f", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
 
-ggplot(data = dataset) +
-  geom_sf(aes(geometry = geometry, fill = pred_bin), color = "black") +
+ggplot() +
+  geom_sf(data = data.plot, aes(geometry = geometry, fill = factor(pred_bin)), color = "black") +
+  scale_fill_viridis_d(option = "plasma", direction = -1, 
+                       name = "Average estimated effect:",
+                       labels = labels_seq,
+                       na.value = "grey50") +
   theme_light() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.line = element_blank()
-  ) +
-  scale_fill_viridis_d(na.value = "grey50", name = "Pop_edu_3_bma") 
+  scale_size_identity() +
+  labs(x = NULL, y = NULL,
+       title = "Variable xxx",
+       subtitle = "Analysis of Regional Variation") +
+  theme(plot.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 11, face = "italic"),
+        legend.position = "right",
+        legend.text = element_text(size = 11)) +
+  coord_sf()
+
 
 # PERFORMANCE STATISTICS AND SPAT AUTOCORRELATION --------
-pmp.bma(mfls_base1)[1,]
-colSums(pmp.bma(mfls_base1)[1:25,])
-colSums(pmp.bma(mfls_base1)[1:50,])
-fullmodel.ssq(mfls_base1)
-lm_base1 <- lm(model.frame(as.zlm(mfls_base1), model = 1))
-lm_res_base1 <- residuals(lm_base1)
-moran.test(lm_res_base1, idw1)
+model <- mfls_base1
+pmp.bma(model)[1,]
+colSums(pmp.bma(model)[1:25,])
+colSums(pmp.bma(model)[1:50,])
+fullmodel.ssq(model)
+lm_base1 <- lm(model.frame(as.zlm(model), model = 1)); summary(lm_base1)
+lm_res_base <- residuals(lm_base1)
+moran.test(lm_res_base, idw1)
 
-# density(mfls_base1[1:500], reg = "GVA_industry", addons = "mle")
-# density(mfls_base2[1:500], reg = "GVA_industry", addons = "mle")
-# density(mfls_base3[1:500], reg = "GVA_industry", addons = "mle")
+# density(model[1:500], reg = "GVA_industry", addons = "mle")
 
-pmp.bma(mfls_base2)[1,]
-colSums(pmp.bma(mfls_base2)[1:25,])
-colSums(pmp.bma(mfls_base2)[1:50,])
-fullmodel.ssq(mfls_base2)
-lm_base2 <- lm(model.frame(as.zlm(mfls_base2), model = 1))
-lm_res_base2 <- residuals(lm_base2)
-moran.test(lm_res_base2, idw1)
-
-pmp.bma(mfls_base3)[1,]
-colSums(pmp.bma(mfls_base3)[1:25,])
-colSums(pmp.bma(mfls_base3)[1:50,])
-fullmodel.ssq(mfls_base3)
-lm_base3 <- lm(model.frame(as.zlm(mfls_base3), model = 1))
-lm_res_base3 <- residuals(lm_base3)
-moran.test(lm_res_base3, idw1)
-
-pmp.bma(mfls_fix1)[1,]
-colSums(pmp.bma(mfls_fix1)[1:25,])
-colSums(pmp.bma(mfls_fix1)[1:50,])
-fullmodel.ssq(mfls_fix1)
-lm_fix1 <- lm(model.frame(as.zlm(mfls_fix1), model = 1))
-lm_res_fix1 <- residuals(lm_fix1)
-moran.test(lm_res_fix1, idw1)
-
-pmp.bma(mfls_fix2)[1,]
-colSums(pmp.bma(mfls_fix2)[1:25,])
-colSums(pmp.bma(mfls_fix2)[1:50,])
-fullmodel.ssq(mfls_fix2)
-lm_fix2 <- lm(model.frame(as.zlm(mfls_fix2), model = 1))
-lm_res_fix2 <- residuals(lm_fix2)
-moran.test(lm_res_fix2, idw1)
-
-# density(mfls_fix1[1:500], reg = "GDP_capita", addons = "mle")
-# density(mfls_fix2[1:500], reg = "GDP_capita", addons = "mle")
-
-pmp.bma(mfls_spat1)[1,]
-colSums(pmp.bma(mfls_spat1)[1:25,])
-colSums(pmp.bma(mfls_spat1)[1:50,])
-fullmodel.ssq(mfls_spat1)
-lm_spat1 <- lm(model.frame(as.zlm(mfls_spat1), model = 1))
-lm_res_spat1 <- residuals(lm_spat1)
-moran.test(lm_res_spat1, idw1)
-
-mfls_spat1$Wcount
-pmpW.bma(mfls_spat1)
-mTest1 = moranTest.bma(object = mfls_spat1, variants = "double",
+model_spat <- mfls_spat1
+model_spat$Wcount
+pmpW.bma(model_spat)
+mTest = moranTest.bma(object = model_spat, variants = "double",
                        W = idw1, nmodel = 1)
-moran_results1 <- cbind(
-  Moran_I = sapply(mTest1$moran, function(x) x$estimate[1]),
-  SD = sqrt(sapply(mTest1$moran, function(x) x$estimate[3])),
-  P_value = sapply(mTest1$moranEV, function(x) x$p.value)
-)
-
-
-pmp.bma(mfls_spat2)[1,]
-colSums(pmp.bma(mfls_spat2)[1:25,])
-colSums(pmp.bma(mfls_spat2)[1:50,])
-fullmodel.ssq(mfls_spat2)
-lm_spat2 <- lm(model.frame(as.zlm(mfls_spat2), model = 1))
-lm_res_spat2 <- residuals(lm_spat2)
-moran.test(lm_res_spat2, idw1)
-
-mfls_spat2$Wcount
-pmpW.bma(mfls_spat2)
-mTest2 = moranTest.bma(object = mfls_spat2, variants = "double", 
-                       W = idw1, nmodel = 1)
-moran_results2 <- cbind(
-  Moran_I = sapply(mTest2$moran, function(x) x$estimate[1]),
-  SD = sqrt(sapply(mTest2$moran, function(x) x$estimate[3])),
-  P_value = sapply(mTest2$moranEV, function(x) x$p.value)
-)
-
-pmp.bma(mfls_spat3)[1,]
-colSums(pmp.bma(mfls_spat3)[1:25,])
-colSums(pmp.bma(mfls_spat3)[1:50,])
-fullmodel.ssq(mfls_spat3)
-lm_spat3 <- lm(model.frame(as.zlm(mfls_spat3), model = 1))
-lm_res_spat3 <- residuals(lm_spat3)
-moran.test(lm_res_spat3, idw1)
-
-mfls_spat3$Wcount
-pmpW.bma(mfls_spat3)
-mTest3 = moranTest.bma(object = mfls_spat3, variants = "double", 
-                       W = idw1, nmodel = 1)
-moran_results3 <- cbind(
-  Moran_I = sapply(mTest3$moran, function(x) x$estimate[1]),
-  SD = sqrt(sapply(mTest3$moran, function(x) x$estimate[3])),
-  P_value = sapply(mTest3$moranEV, function(x) x$p.value)
-)
+moran_results <- cbind(
+  Moran_I = sapply(mTest$moran, function(x) x$estimate[1]),
+  SD = sqrt(sapply(mTest$moran, function(x) x$estimate[3])),
+  P_value = sapply(mTest$moranEV, function(x) x$p.value)
+); moran_results
 
 # BETA CONVERGENCE -------
 dataset <- read_csv("03_final-input/dataset.csv") %>%
-  select(NUTS, Year, GDP_capita)
+  select(NUTS, Name, Year, GDP_capita) %>% 
+  mutate(GDP_capita = log(GDP_capita))
 data <- dataset %>% 
   select(NUTS, Name, Year, GDP_capita) %>%
   pivot_longer(cols = -c(NUTS, Name, Year),
@@ -156,7 +96,7 @@ data <- dataset %>%
   pivot_wider(names_from = "Year",
               values_from = "Values") %>%
   mutate(
-    GDP_gg = (`2019`-`2009`)/`2009`,
+    GDP_gg = `2019`-`2009`,
     ColorMap = case_when(
       str_detect(NUTS, "^BA|^RS|^ME|^MK|^AL|^MD|^XK|^TR") ~ "Candidate",
       str_detect(NUTS, "^PL|^CZ|^SK|^HU|^LT|^LV|^EE|^HR|^BG|^RO|^CY|^SI") ~ "CEE",
@@ -176,7 +116,7 @@ top_gdp_gg <- data %>%
   ungroup()
 
 ggplot(data, aes(x = `2009`, y = GDP_gg)) +
-  geom_point(aes(color = ColorMap), size = 4) +  # Increase point size
+  geom_point(aes(color = ColorMap), size = 3) +  # Increase point size
   scale_color_manual(values = c("Greece" = "red",
                                 "EU" = "#66c2a5",
                                 "CEE" = "#fc8d62",
@@ -185,7 +125,7 @@ ggplot(data, aes(x = `2009`, y = GDP_gg)) +
   geom_smooth(method = "lm", se = TRUE, color = "blue") +
   geom_text(data = top_gdp_gg, aes(label = NUTS, fontface = "bold"), vjust = 0.2, hjust = -0.2) +
   geom_hline(yintercept = 0, linetype = "dotted", color = "black", linewidth = 1) +
-  labs(x = "GDP per Capita in 2009",
+  labs(x = "Log GDP per Capita in 2009",
        y = "Growth Rate of GDP per Capita",
        caption = "Data source: Eurostat/World Bank") +  # Add caption
   theme_minimal() +

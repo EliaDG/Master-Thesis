@@ -17,11 +17,12 @@ attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each
 attr(idw1$neighbours, "sym") <- TRUE
 attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
 
+
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>%
   group_by(NUTS) %>% 
   mutate(across(-c(Name, Country, Year, GDP_growth,
-                   Candidates, CEE, Capital, Coastal, Island), ~ lag(.))) %>%
+                   Candidates, CEE, Capital, Coastal, Island, Border, Eurozone, Objective_1), ~ lag(.))) %>%
   ungroup() %>% 
   filter(Year %in% 2009:2019) %>% 
   mutate(Year = as.factor(Year),
@@ -37,7 +38,7 @@ data_encoded$Country <- NULL
 data_encoded$Year <- NULL
 colnames(data_encoded) <- make.names(colnames(data_encoded))
 
-#write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
+write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
 
 CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bulgaria", 
         "C_Croatia", "C_Cyprus", "C_Czech.Republic", "C_Denmark", "C_Estonia", "C_Finland", 
@@ -51,10 +52,11 @@ YF <- c("Y_2010", "Y_2011","Y_2012", "Y_2013", "Y_2014",
 
 TF <- c(CF,YF)
 
+
 # TEST: BASE MODEL -----
 datas_base <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
-         #No Candidates x Capital because most of these countries are single regions
+         `Candidates#Capital` = Candidates*Capital,
          `CEE#GVA_services` = CEE*GVA_services,
          `CEE#GVA_public` = CEE*GVA_public,
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
@@ -66,8 +68,10 @@ datas_base <- data_encoded %>%
          `Candidates#GVA_industry` = Candidates*GVA_industry,
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
-         `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, starts_with("C_")))
+         `Candidates#GDP_capita` = Candidates*GDP_capita,
+         `CEE#Pop_edu_3` = CEE*Pop_edu_3,
+         `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
+  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(datas_base), value = TRUE)
 
 mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
@@ -82,9 +86,11 @@ mfls_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd.int",
                  user.int=TRUE, force.full.ols = TRUE)
 
+
 # TEST: FIXED EFFECTS -----
 datas_fix <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
+         `Candidates#Capital` = Candidates*Capital,
          `CEE#GVA_services` = CEE*GVA_services,
          `CEE#GVA_public` = CEE*GVA_public,
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
@@ -96,8 +102,10 @@ datas_fix <- data_encoded %>%
          `Candidates#GVA_industry` = Candidates*GVA_industry,
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
-         `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, Candidates, CEE))
+         `Candidates#GDP_capita` = Candidates*GDP_capita,
+         `CEE#Pop_edu_3` = CEE*Pop_edu_3,
+         `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
+  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(datas_fix), value = TRUE)
 
 mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
@@ -113,6 +121,7 @@ WL_decade_ext <- lapply(WL_decade, repeat_rows)
 
 datas_spat <- data_encoded %>%
   mutate(`CEE#Capital` = CEE*Capital,
+         `Candidates#Capital` = Candidates*Capital,
          `CEE#GVA_services` = CEE*GVA_services,
          `CEE#GVA_public` = CEE*GVA_public,
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
@@ -124,8 +133,10 @@ datas_spat <- data_encoded %>%
          `Candidates#GVA_industry` = Candidates*GVA_industry,
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
-         `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, starts_with("C_")))
+         `Candidates#GDP_capita` = Candidates*GDP_capita,
+         `CEE#Pop_edu_3` = CEE*Pop_edu_3,
+         `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
+  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
 mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
@@ -133,12 +144,10 @@ mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", 
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
 
-
 mfls_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,
                          nmodel=100, mcmc="bd", g="BRIC", 
                          mprior="random", user.int = TRUE)
-
 
 mfls_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
                          burn = 3e+06,iter = 10e+06,

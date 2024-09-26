@@ -47,7 +47,11 @@ dataset <- full_join(data_EU, data_EXTRA) %>%
          Unemployment_rate = Unemployment_abs / Population_abs,
          Migration_rate = Migration_abs/Population_abs,
          GFCF_share = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GFCF_share, GFCF_EUR / GDP_EUR),
-         Labor_Prodx = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GDP_EUR/Employment_abs, Labor_Prodx)) %>% 
+         Labor_Prodx = if_else(NUTS %in% c("BA00", "MD00", "XK00"), GDP_EUR/Employment_abs, Labor_Prodx),
+         ) %>%
+  group_by(NUTS) %>% 
+  mutate(Wage_growth = (Wage_EUR-lag(Wage_EUR))/lag(Wage_EUR)) %>% 
+  ungroup() %>% 
   select(NUTS, Name, Country, Year, GDP_growth, GDP_capita, everything()) %>% 
   select(-c(GFCF_EUR, Migration_abs, Unemployment_abs, GDP_EUR)) %>% 
   rename(GDP_EUR = GDP_EUR_to_keep) %>% 

@@ -71,7 +71,7 @@ subdatas_base <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%  
-  select(-c(Name, NUTS, starts_with("C_")))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 sub_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", "Candidates", interaction)], burn=3e+06, iter=10e+06,
@@ -103,7 +103,7 @@ subdatas_fix <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%
-  select(-c(Name, NUTS, Candidates, CEE))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 sub_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
@@ -133,7 +133,7 @@ subdatas_spat <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, starts_with("C_")))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 sub_spat1 = spatFilt.bms(X.data = subdatas_spat[,!names(subdatas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_panel, 

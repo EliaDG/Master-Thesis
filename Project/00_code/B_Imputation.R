@@ -1,11 +1,13 @@
 getwd()
+set.seed(1105)
 
 #DEPENDENCIES
 source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #LOADING DATA
-dataset <- read_csv("03_final-input/dataset.csv")
+dataset <- read_csv("03_final-input/dataset.csv") %>% 
+  select(-Population_abs)
 glimpse(dataset)
 
 #Transformation --------------
@@ -18,7 +20,7 @@ glimpse(dataset)
 #      border = "black")
 
 data <- dataset %>%
-  mutate(across(c(starts_with("Prodx"), Labor_Prodx, Wage_EUR, GDP_capita), ~ log(.))) %>%
+  mutate(across(c(Labor_Prodx, Wage_EUR, GDP_capita), ~ log(.))) %>%
   as.data.frame() %>% 
   select(-c(Employment_rate, Unemployment_rate)) %>% 
   rename(Employment_rate = emp_rate,
@@ -28,7 +30,7 @@ summary(data)
 #Imputation ----------
 doParallel::registerDoParallel()
 data_amelia <- amelia(data, m = 5, ts = "Year", cs = "NUTS", polytime = 1,
-                      noms = c("Candidates", "CEE", "Capital", "Coastal", "Island", "Objective_1", "Eurozone"),
+                      noms = c("Candidates", "CEE", "Capital", "Coastal", "Island", "Objective_1", "Eurozone", "Border"),
                       idvars = c("Name", "Country"))
 
 medians_data_amelia <- list()
@@ -41,7 +43,7 @@ medians_data_amelia <- as.data.frame(medians_data_amelia)
 
 #Mice process
 predictormatrix<-quickpred(data,
-                           include = c("GDP_growth", "Labor_Prodx", "Wage_EUR",
+                           include = c("GDP_growth", "Labor_Prodx", "Wage_EUR", "Wage_growth",
                                        "Activity_rate", "NEET_share", "Life_exp",
                                        "Fertility_rate", "Pop_edu_1", "Pop_edu_2",
                                        "Pop_edu_3", "inv_rate", "GVA_agriculture", "GVA_construction", "GVA_industry",
@@ -54,7 +56,6 @@ predictormatrix<-quickpred(data,
                            exclude = c("NUTS", "Name", "Country", "Year"),
                            mincor = 0.5)
 
-doParallel::registerDoParallel()
 data_mice <- mice(data, m = 5,
                   predictorMatrix = predictormatrix,
                   method = 'pmm', maxit = 30, seed = 1105)

@@ -62,7 +62,7 @@ ggplot() +
 
 
 # PERFORMANCE STATISTICS AND SPAT AUTOCORRELATION --------
-model <- mfls_base1
+model <- mfls_base3
 pmp.bma(model)[1,]
 colSums(pmp.bma(model)[1:25,])
 colSums(pmp.bma(model)[1:50,])

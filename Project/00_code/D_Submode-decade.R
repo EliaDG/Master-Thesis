@@ -7,24 +7,32 @@ source("00_code/__functions.R")
 
 #Loading Data
 subdataset_amelia <- read_csv("03_final-input/dataset_amelia.csv") %>%
-  select(-GDP_growth)
-GDP_capita_raw <- read_csv("03_final-input/dataset.csv") %>%
-  select(NUTS, Year, GDP_capita)
+  select(-c(GDP_growth, Pop_growth, Wage_growth))
+Growth_variables <- read_csv("03_final-input/dataset.csv") %>%
+  select(NUTS, Year, GDP_capita, Population_abs, Wage_EUR)
 W1 <- readRDS("03_final-input/idw.rds")
 
 # HOT ONE ENCODING -----
-GDP_decade <- GDP_capita_raw %>%
+Growth_decade <- Growth_variables %>%
+  pivot_longer(cols = -c(NUTS, Year),
+               names_to = "Series",
+               values_to = "Values") %>% 
   pivot_wider(names_from = Year,
-              values_from = GDP_capita) %>%
+              values_from = Values) %>%
   mutate(`2009` = (`2019`-`2009`)/`2009`) %>%
-  select(NUTS, `2009`) %>% 
-  pivot_longer(cols = -"NUTS",
+  select(NUTS, `2009`, Series) %>% 
+  pivot_longer(cols = -c(NUTS, Series),
                names_to = "Year",
-               values_to = "GDP_growth") %>% 
-  mutate(Year = as.numeric(Year)) %>%   
+               values_to = "Values") %>%
+  pivot_wider(names_from = "Series",
+              values_from = "Values") %>% 
+  mutate(Year = as.numeric(Year)) %>%
+  rename(GDP_growth = GDP_capita,
+         Pop_growth = Population_abs,
+         Wage_growth = Wage_EUR) %>% 
   as.data.frame()
 
-subdata <- inner_join(subdataset_amelia, GDP_decade, by = c("NUTS", "Year")) %>%
+subdata <- inner_join(subdataset_amelia, Growth_decade, by = c("NUTS", "Year")) %>%
   select(NUTS, Name, Country, GDP_growth, everything()) %>%
   select(-Year) %>% 
   mutate(Country = as.factor(Country))
@@ -58,7 +66,7 @@ subdatas_base <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%  
-  select(-c(Name, NUTS, starts_with("C_")))
+  select(-c(Name, NUTS, starts_with("C_")), Wage_EUR, Coastal, Eurozone)
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 dec_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", "Candidates", interaction)], burn=3e+06, iter=10e+06,
@@ -89,7 +97,7 @@ subdatas_fix <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%
-  select(-c(Name, NUTS, Candidates, CEE, Eurozone))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 dec_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
@@ -117,7 +125,7 @@ subdatas_spat <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, starts_with("C_")))
+  select(-c(Name, NUTS, starts_with("C_")), Wage_EUR, Coastal, Eurozone)
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 dec_spat1 = spatFilt.bms(X.data = subdatas_spat[,!names(subdatas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade, 

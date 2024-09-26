@@ -86,25 +86,51 @@ dataset_complete <- dataset %>%
            grepl("00", NUTS) | grepl("UKI", NUTS) ~ "Yes",
            TRUE ~ "No"),
          Coastal = case_when(
-           NUTS %in% c("AL00", "BA00", "BE21", "BE25", "BG33", "BG34", "CY00", "DE50", "DE60", 
-                       "DE80", "DE93", "DE94", "DEF0", "DK01", "DK02", "DK03", "DK04", "DK05", 
-                       "EE00", "EL30", "EL41", "EL42", "EL43", "EL51", "EL52", "EL54", "EL61", 
-                       "EL62", "EL63", "EL64", "EL65", "ES11", "ES12", "ES13", "ES21", "ES51", 
-                       "ES52", "ES53", "ES61", "ES62", "FRE1", "FRE2", "FRD1", "FRD2", "FRG0", 
-                       "FRH0", "FRI1", "FRI3", "FRJ1", "FRL0", "FRM0", "HR03", "IE01", "IE02", 
-                       "IE04", "IE05", "IE06", "ITH3", "ITH4", "ITH5", "ITI1", "ITI3", "ITI4", 
-                       "ITC3", "ITF1", "ITF2", "ITF3", "ITF4", "ITF5", "ITF6", "ITG1", "ITG2", 
-                       "LT00", "LT02", "LV00", "ME00", "MT00", "NL11", "NL12", "NL32", "NL33", 
-                       "NL34", "PL42", "PL62", "PL63", "PT11", "PT15", "PT16", "PT17", "PT18", 
-                       "RO22", "SE11", "SE12", "SE21", "SE22", "SE23", "SE31", "SE32", "SE33", 
-                       "SI04", "FI19", "FI1B", "FI1C", "FI1D", "FI20", "TR10", "TR21", "TR22", 
-                       "TR31", "TR32", "TR41", "TR42", "TR61", "TR62", "TR63", "TR81", "TR82", 
+           NUTS %in% c("AL00", "BA00", "BE21", "BE25", "BG33", "BG34", "CY00", "DE50", "DE60",
+                       "DE80", "DE93", "DE94", "DEF0", "DK01", "DK02", "DK03", "DK04", "DK05",
+                       "EE00", "EL30", "EL41", "EL42", "EL43", "EL51", "EL52", "EL54", "EL61",
+                       "EL62", "EL63", "EL64", "EL65", "ES11", "ES12", "ES13", "ES21", "ES51",
+                       "ES52", "ES53", "ES61", "ES62", "FRE1", "FRE2", "FRD1", "FRD2", "FRG0",
+                       "FRH0", "FRI1", "FRI3", "FRJ1", "FRL0", "FRM0", "HR03", "IE01", "IE02",
+                       "IE04", "IE05", "IE06", "ITH3", "ITH4", "ITH5", "ITI1", "ITI3", "ITI4",
+                       "ITC3", "ITF1", "ITF2", "ITF3", "ITF4", "ITF5", "ITF6", "ITG1", "ITG2",
+                       "LT00", "LT02", "LV00", "ME00", "MT00", "NL11", "NL12", "NL32", "NL33",
+                       "NL34", "PL42", "PL62", "PL63", "PT11", "PT15", "PT16", "PT17", "PT18",
+                       "RO22", "SE11", "SE12", "SE21", "SE22", "SE23", "SE31", "SE32", "SE33",
+                       "SI04", "FI19", "FI1B", "FI1C", "FI1D", "FI20", "TR10", "TR21", "TR22",
+                       "TR31", "TR32", "TR41", "TR42", "TR61", "TR62", "TR63", "TR81", "TR82",
                        "TR83", "TR90", "UKC1", "UKC2", "UKD1", "UKD4", "UKD6", "UKD7", "UKE1", "UKM3",
                        "UKE2", "UKF3", "UKH1", "UKH3", "UKJ2", "UKJ3", "UKJ4", "UKK1", "UKK2", "UKM2",
                        "UKK3", "UKK4", "UKL1", "UKL2", "UKM5", "UKM6", "UKM7", "UKM8", "UKM9", "UKN0") ~ "Yes",
            TRUE ~ "No"),
          Island = case_when(
            NUTS %in% c("CY00", "DK01", "DK02", "EL41", "EL42", "EL43", "EL62", "ES53", "FI20", "FRM0", "ITG1", "ITG2", "MT00") ~ "Yes",
+           TRUE ~ "No"),
+         Border = case_when(
+           NUTS %in% c("BE25", "BE23", "BE21", "BE22", "BE33", "BE34", "BE35", "BE32", "CZ04", 
+                       "CZ05", "CZ08", "CZ07", "CZ06", "CZ03", "DK03", "DEF0", "DE80", "DE40", 
+                       "DED2", "DED4", "DE24", "DE23", "DE22", "DE21", "DE27", "DE14", "DE13", 
+                       "DE12", "DEB3", "DEC0", "DEB2", "DEA2", "DEA1", "DEA3", "DE94", "IE04",
+                       "IE06", "EL51", "EL52", "EL53", "EL54", "ES11", "ES21", "ES22", "ES24",
+                       "ES41", "ES43", "ES51", "ES61", "FRF1", "FRF2", "FRF3", "FRC2", "FRI1", 
+                       "FRJ1", "FRJ2", "FRL0", "FRK2", "FRE2", "FRE1", "ITC1", "ITC2", "ITC4", 
+                       "ITC3", "ITH1", "ITH3", "ITH4", "NL11", "NL13", "NL21", "NL22", "NL41", 
+                       "NL42", "NL34", "AT34", "AT33", "AT32", "AT21", "AT22", "AT11", "AT12",
+                       "AT31", "PL62", "PL84", "PL81", "PL82", "PL21", "PL22", "PL52", "PL51",
+                       "PL43", "PL42", "PT11", "PT16", "PT18", "PT15", "RO11", "RO21", "RO22",
+                       "RO31", "RO41", "RO42", "FI1D", "FI1C", "SE33", "SE32", "SE31", "SE23",
+                       "UKN0", "RS12", "RS21", "RS22", "TR21")  ~ "Yes",
+           grepl("BG", NUTS) | grepl("HR", NUTS) | grepl("HU", NUTS) | grepl("SI", NUTS) | grepl("SK", NUTS) ~ "Yes",
+           grepl("00", NUTS) & !NUTS %in% c("CY00", "MT00") ~ "Yes",
+           TRUE ~ "No"),
+         Eurozone = case_when(
+           Country %in% c("Austria", "Belgium", "Cyprus", "Finland",
+                          "France", "Germany", "Greece", "Ireland", "Italy", 
+                          "Luxembourg", "Malta", "Netherlands", "Portugal", 
+                          "Slovakia", "Slovenia", "Spain", "Montenegro", "North Macedonia") ~ "Yes",
+           Country == "Estonia" & Year %in% 2011:2019 ~ "Yes",
+           Country == "Latvia" & Year %in% 2014:2019 ~ "Yes",
+           Country == "Lithuania" & Year %in% 2015:2019 ~ "Yes",
            TRUE ~ "No"),
          Objective_1 = case_when(
            NUTS %in% c("CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08", "DE40",
@@ -132,19 +158,10 @@ dataset_complete <- dataset %>%
                        "PT11", "PT16", "PT18", "RO11", "RO12", "RO21", "RO22",
                        "RO31", "RO41", "RO42", "SI01", "SK02", "SK03", "SK04", "UKK3", "UKL1") & Year %in% 2014:2019 ~ "Yes",
            TRUE ~ "No"),
-         Eurozone = case_when(
-           Country %in% c("Austria", "Belgium", "Cyprus", "Finland",
-                          "France", "Germany", "Greece", "Ireland", "Italy", 
-                          "Luxembourg", "Malta", "Netherlands", "Portugal", 
-                          "Slovakia", "Slovenia", "Spain", "Montenegro", "North Macedonia") ~ "Yes",
-           Country == "Estonia" & Year %in% 2011:2019 ~ "Yes",
-           Country == "Latvia" & Year %in% 2014:2019 ~ "Yes",
-           Country == "Lithuania" & Year %in% 2015:2019 ~ "Yes",
-           TRUE ~ "No"),
          Output_density = (GDP_EUR/1000000)/Area,
          Employment_density = (Employment_abs/1000)/Area,
          Population_density = (Population_abs/1000)/Area) %>%
-  select(-c(Area, Population_abs, GDP_EUR, Employment_abs)) %>% 
+  select(-c(Area, GDP_EUR, Employment_abs)) %>% 
   st_cast("MULTIPOLYGON")
 
 bruxelles_centroid <- geom_NUTS2 %>%
@@ -162,7 +179,7 @@ Dist_BRUX <- geom_NUTS2 %>%
 
 dataset_final <- dataset_complete %>% 
   full_join(Dist_BRUX, by = "NUTS") %>%
-  mutate(across(c(Capital, Coastal, Island, Objective_1, Eurozone, CEE, Candidates),
+  mutate(across(c(Capital, Coastal, Island, Objective_1, Border, Eurozone, CEE, Candidates),
                 ~ as.numeric(ifelse(. == "Yes", 1, ifelse(. == "No", 0, .))))) %>%
   st_set_geometry(NULL) %>% 
   as.data.frame()

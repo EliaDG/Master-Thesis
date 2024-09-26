@@ -7,23 +7,31 @@ source("00_code/__functions.R")
 
 #Loading Data
 subdataset_amelia <- read_csv("03_final-input/dataset_amelia.csv") %>%
-  select(-GDP_growth)
-GDP_capita_raw <- read_csv("03_final-input/dataset.csv") %>%
-  select(NUTS, Year, GDP_capita)
+  select(-c(GDP_growth, Pop_growth, Wage_growth))
+Growth_variables <- read_csv("03_final-input/dataset.csv") %>%
+  select(NUTS, Year, GDP_capita, Population_abs, Wage_EUR)
 
 # HOT ONE ENCODING -----
-GDP_decade <- GDP_capita_raw %>%
+Growth_decade <- Growth_variables %>%
+  pivot_longer(cols = -c(NUTS, Year),
+               names_to = "Series",
+               values_to = "Values") %>% 
   pivot_wider(names_from = Year,
-              values_from = GDP_capita) %>%
+              values_from = Values) %>%
   mutate(`2009` = (`2019`-`2009`)/`2009`) %>%
-  select(NUTS, `2009`) %>% 
-  pivot_longer(cols = -"NUTS",
+  select(NUTS, `2009`, Series) %>% 
+  pivot_longer(cols = -c(NUTS, Series),
                names_to = "Year",
-               values_to = "GDP_growth") %>% 
-  mutate(Year = as.numeric(Year)) %>%   
+               values_to = "Values") %>%
+  pivot_wider(names_from = "Series",
+              values_from = "Values") %>% 
+  mutate(Year = as.numeric(Year)) %>%
+  rename(GDP_growth = GDP_capita,
+         Pop_growth = Population_abs,
+         Wage_growth = Wage_EUR) %>% 
   as.data.frame()
 
-subdata <- inner_join(subdataset_amelia, GDP_decade, by = c("NUTS", "Year")) %>%
+subdata <- inner_join(subdataset_amelia, Growth_decade, by = c("NUTS", "Year")) %>%
   select(NUTS, Name, Country, GDP_growth, everything()) %>%
   filter(CEE == 1 | Candidates == 1) %>%
   select(-c(Year, CEE, Island)) %>% 

@@ -174,7 +174,7 @@ yFilt5 <- SpatialFiltering(datas_period[, 1] ~ 1, ~-1, data = y,
 WL_period <- list(Col_A = fitted(yFilt1), Col_B = fitted(yFilt2), Col_C = fitted(yFilt3), Col_D = fitted(yFilt4), Col_E = fitted(yFilt5))
 
 # Visualization queen continuity network -------
-queen_lines <- listw2lines(queen_listw, coords = st_centroid(geom$geometry))
+queen_lines <- listw2lines(W1, coords = st_centroid(geom$geometry))
 ggplot(data = geom) +
   geom_sf(color = "black") +
   theme_light() +
@@ -190,3 +190,5 @@ ggplot(data = geom) +
 saveRDS(WL_decade, file = "03_final-input/WL_10.rds")
 saveRDS(WL_period, file = "03_final-input/WL_5.rds")
 saveRDS(W1, file = "03_final-input/idw.rds")
+saveRDS(W4, file = "03_final-input/idw2.rds")
+saveRDS(W5, file = "03_final-input/idw5.rds")

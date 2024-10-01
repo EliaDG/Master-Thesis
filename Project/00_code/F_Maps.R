@@ -120,7 +120,7 @@ plot_2 <- ggplot(data = World) +
         legend.title = element_text(face = "bold", size = 12),
         legend.text = element_text(size = 12)) +
   labs(x = NULL, y = NULL,
-       title = "NUTS2 of Europe",
+       title = "NUTS-2 of Europe",
        subtitle = "Area of Reseach",
        caption = "Source: Eurostat, GADM") +
   coord_sf(xlim = c(-10, 48), ylim = c(35, 70)) +
@@ -221,7 +221,8 @@ data.edu <- cbind(data, variable) %>%
 breaks_seq <- seq(min(data.edu$pred_average, na.rm = TRUE), max(data.edu$pred_average, na.rm = TRUE), length.out = 6)
 labels_seq <- sprintf("%.3f to %.3f", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
 
-education <- ggplot() +
+education <- ggplot(data = World) +
+  geom_sf(color = "black") +
   geom_sf(data = data.edu, aes(geometry = geometry, fill = factor(pred_bin)), color = "black") +
   scale_fill_viridis_d(option = "plasma", direction = -1, 
                        name = "Average estimated effect:",
@@ -229,14 +230,20 @@ education <- ggplot() +
                        na.value = "grey50",
                        guide = guide_legend(direction = "vertical")) +
   theme_light() +
-  scale_size_identity() +
-  labs(x = NULL, y = NULL,
-       title = "Human Capital") +
-  theme(plot.title = element_text(size = 12, face = "bold"),
+  theme(panel.background = element_rect(fill = "lightblue"),
+        plot.title = element_text(size = 12, face = "bold"),
         plot.subtitle = element_text(size = 11, face = "italic"),
         legend.position = "bottom",
         legend.text = element_text(size = 11)) +
-  coord_sf()
+  annotate("text", x = 18, y = 35, label = "Mediterranean Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = 34, y = 43.5, label = "Black Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = -8, y = 45.5, label = "Atlantic Ocean", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = 0, y = 65, label = "North Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = 18, y = 55.75, label = "Baltic Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  coord_sf(xlim = c(-10, 48), ylim = c(35, 70)) +
+  scale_size_identity() +
+  labs(x = NULL, y = NULL,
+       title = "Human Capital")
 
 posterior_means <- coef(mfls_base3, exact = TRUE)
 var_mean <- posterior_means["GDP_capita",2]
@@ -257,7 +264,8 @@ data.gdp <- cbind(data, variable) %>%
 breaks_seq <- seq(min(data.gdp$pred_average, na.rm = TRUE), max(data.gdp$pred_average, na.rm = TRUE), length.out = 6)
 labels_seq <- sprintf("%.3f to %.3f", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
 
-convergence  <- ggplot() +
+convergence  <- ggplot(data = World) +
+  geom_sf(color = "black") +
   geom_sf(data = data.gdp, aes(geometry = geometry, fill = factor(pred_bin)), color = "black") +
   scale_fill_viridis_d(option = "plasma", direction = -1, 
                        name = "Average estimated effect:",
@@ -265,14 +273,20 @@ convergence  <- ggplot() +
                        na.value = "grey50",
                        guide = guide_legend(direction = "vertical")) +
   theme_light() +
-  scale_size_identity() +
-  labs(x = NULL, y = NULL,
-       title = "Initial Income",) +
-  theme(plot.title = element_text(size = 12, face = "bold"),
+  theme(panel.background = element_rect(fill = "lightblue"),
+        plot.title = element_text(size = 12, face = "bold"),
         plot.subtitle = element_text(size = 11, face = "italic"),
         legend.position = "bottom",
         legend.text = element_text(size = 11)) +
-  coord_sf()
+  annotate("text", x = 18, y = 35, label = "Mediterranean Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = 34, y = 43.5, label = "Black Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = -8, y = 45.5, label = "Atlantic Ocean", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = 0, y = 65, label = "North Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  annotate("text", x = 18, y = 55.75, label = "Baltic Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
+  coord_sf(xlim = c(-10, 48), ylim = c(35, 70)) +
+  scale_size_identity() +
+  labs(x = NULL, y = NULL,
+       title = "Initial Income",)
 
 plot_4 <- (convergence |education) +
   plot_annotation(
@@ -281,6 +295,7 @@ plot_4 <- (convergence |education) +
 
 
 # SAVING
-# ggsave("study_area.png", plot = plot_1, device = "png", width = 12.8, height = 9.06)
-# ggsave("macroregions.png", plot = plot_2, device = "png", width = 12.8, height = 9.06)
-# ggsave("queen.png", plot = plot_3, device = "png", width = 12.8, height = 9.06)
+ggsave("05_pictures/country.png", plot = plot_1, device = "png", width = 12.8, height = 9.06)
+ggsave("05_pictures/nuts2.png", plot = plot_2, device = "png", width = 12.8, height = 9.06)
+ggsave("05_pictures/network.png", plot = plot_3, device = "png", width = 14, height = 10)
+ggsave("05_pictures/coeff.png", plot = plot_4, device = "png", width = 14, height = 10)

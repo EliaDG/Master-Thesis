@@ -66,7 +66,7 @@ subdatas_base <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%  
-  select(-c(Name, NUTS, starts_with("C_")), Wage_EUR, Coastal, Eurozone)
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 dec_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", "Candidates", interaction)], burn=3e+06, iter=10e+06,
@@ -97,7 +97,7 @@ subdatas_fix <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%
-  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_growth, Coastal, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 dec_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
@@ -125,7 +125,7 @@ subdatas_spat <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, starts_with("C_")), Wage_EUR, Coastal, Eurozone)
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 dec_spat1 = spatFilt.bms(X.data = subdatas_spat[,!names(subdatas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade, 
@@ -147,4 +147,5 @@ dec_spat3 = spatFilt.bms(X.data = subdatas_spat, WList = WL_decade,
 rm(list = setdiff(ls(), c("dec_base1", "dec_base2", "dec_base3",
                           "dec_fix1", "dec_fix2",
                           "dec_spat1", "dec_spat2", "dec_spat3")))
-save.image(file = "04_final-output/Models-decade.RData")
+save.image(file = "04_final-output/Models-decade-ohnewagegrowth.RData")
+rm(list = ls())

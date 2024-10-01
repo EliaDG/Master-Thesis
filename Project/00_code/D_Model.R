@@ -71,7 +71,7 @@ datas_base <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_base), value = TRUE)
 
 mfls_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
@@ -105,7 +105,7 @@ datas_fix <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_growth, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_fix), value = TRUE)
 
 mfls_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
@@ -136,7 +136,7 @@ datas_spat <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
 mfls_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
@@ -160,3 +160,4 @@ rm(list = setdiff(ls(), c("mfls_base1", "mfls_base2", "mfls_base3",
                           "mfls_fix1", "mfls_fix2",
                           "mfls_spat1", "mfls_spat2", "mfls_spat3")))
 save.image(file = "04_final-output/Models-annual.RData")
+rm(list = ls())

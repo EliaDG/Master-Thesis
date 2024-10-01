@@ -63,7 +63,7 @@ subdatas_base <- subdata_encoded %>%
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
          `CEE#GVA_industry` = CEE*GVA_industry,
          `CEE#GVA_construction` = CEE*GVA_construction) %>%  
-  select(-c(Name, NUTS, starts_with("C_")))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 eu_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", interaction)], burn=3e+06, iter=10e+06,
@@ -88,7 +88,7 @@ subdatas_fix <- subdata_encoded %>%
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
          `CEE#GVA_industry` = CEE*GVA_industry,
          `CEE#GVA_construction` = CEE*GVA_construction) %>%  
-  select(-c(Name, NUTS, CEE, Eurozone))
+  select(-c(Name, NUTS, CEE, Wage_growth, Coastal, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 eu_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
@@ -111,7 +111,7 @@ subdatas_spat <- subdata_encoded %>%
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
          `CEE#GVA_industry` = CEE*GVA_industry,
          `CEE#GVA_construction` = CEE*GVA_construction) %>%  
-  select(-c(Name, NUTS, starts_with("C_")))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 
@@ -135,3 +135,4 @@ rm(list = setdiff(ls(), c("eu_base1", "eu_base2", "eu_base3",
                           "eu_fix1", "eu_fix2",
                           "eu_spat1", "eu_spat2", "eu_spat3")))
 save.image(file = "04_final-output/Models-eu.RData")
+rm(list = ls())

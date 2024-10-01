@@ -6,12 +6,11 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #Loading Data
-geom <- readRDS("03_final-input/geometries.rds")
 data <- read_csv("03_final-input/dataset_amelia.csv") %>% 
   select(NUTS, Name, Year, Pop_edu_3, GDP_capita) %>% 
   #filter(Year %in% c(2009:2019)) %>% 
   filter(Year == 2009)
-load("04_final-output/Models-decade.RData")
+load("04_final-output/Models-panel.RData")
 W1 <- readRDS("03_final-input/idw.rds")
 idw1 <- W1
 idw1$neighbours <- rep(W1$neighbours, each = 11);
@@ -22,47 +21,9 @@ attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each
 attr(idw1$neighbours, "sym") <- TRUE
 attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
 
-
-# DISTRIBUTION COEFF -------
-posterior_means <- coef(dec_base3, exact = TRUE)
-var_mean <- posterior_means["Pop_edu_3",2]
-var_values <- data$Pop_edu_3
-variable <- var_mean * var_values %>% 
-  as.data.frame()
-
-data.plot <- cbind(data, variable) %>% 
-  full_join(geom, by = "NUTS") %>% 
-  rename(pred = ".") %>%
-  # group_by(NUTS) %>%
-  # mutate(pred_average = mean(pred)) %>%
-  # ungroup() %>%
-  #filter(Year == 2019) %>% 
-  st_as_sf() %>% 
-  mutate(pred_bin = cut(pred, breaks = 5, labels = FALSE))
-
-breaks_seq <- seq(min(data.plot$pred, na.rm = TRUE), max(data.plot$pred, na.rm = TRUE), length.out = 6)
-labels_seq <- sprintf("%.2f to %.2f", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
-
-ggplot() +
-  geom_sf(data = data.plot, aes(geometry = geometry, fill = factor(pred_bin)), color = "black") +
-  scale_fill_viridis_d(option = "plasma", direction = -1, 
-                       name = "Average estimated effect:",
-                       labels = labels_seq,
-                       na.value = "grey50") +
-  theme_light() +
-  scale_size_identity() +
-  labs(x = NULL, y = NULL,
-       title = "Variable xxx",
-       subtitle = "Analysis of Regional Variation") +
-  theme(plot.title = element_text(size = 12, face = "bold"),
-        plot.subtitle = element_text(size = 11, face = "italic"),
-        legend.position = "right",
-        legend.text = element_text(size = 11)) +
-  coord_sf()
-
-
 # PERFORMANCE STATISTICS AND SPAT AUTOCORRELATION --------
 model <- mfls_base3
+model
 pmp.bma(model)[1,]
 colSums(pmp.bma(model)[1:25,])
 colSums(pmp.bma(model)[1:50,])

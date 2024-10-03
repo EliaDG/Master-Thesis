@@ -147,5 +147,5 @@ dec_spat3 = spatFilt.bms(X.data = subdatas_spat, WList = WL_decade,
 rm(list = setdiff(ls(), c("dec_base1", "dec_base2", "dec_base3",
                           "dec_fix1", "dec_fix2",
                           "dec_spat1", "dec_spat2", "dec_spat3")))
-save.image(file = "04_final-output/Models-decade-ohnewagegrowth.RData")
+save.image(file = "04_final-output/Models-decade.RData")
 rm(list = ls())

@@ -7,8 +7,22 @@ Welcome! The structure of this repository is the following:
 - `Setup.xlxs` is an Excel Table I used to monitor data coverage, notes and sources as I was collecting.
 
 More in detail, `Project/` contains:
-- `code/` where all R code is stored for the cleaning, visualisation and modelling of the data; 
-- The original or intermediate data versions I worked with;
-- `final-inputs/` containing the final original dataset, its imputed versions, and the corresponding spatial matrices I will employ in my analysis.
+- `code/` where all R code is stored for the cleaning, visualisation and modelling of the data. The `code/` folder is organized into several chapters based on specific themes or processes involved in the analysis. Here's an overview of the sections:
+
+  #### A. Data Preparation and Sources
+  #### B. Data Imputation
+  #### C. Matrix Construction
+  #### D. Modeling and Submodels
+  #### E. Robustness Checks
+  #### F. Visualizations and Tables
+  #### Supporting Files
+  - **\_functions.R**: Collection of custom functions used throughout the analysis.
+  - **\_packages.R**: Script for loading and managing required R packages.
+  - **\_Update.R**: Code for reporting updates during meetings with the Supervisor.
+
+- The original and intermediate data inputs versions I worked with, grouped by source;
+- `final-inputs/` containing the final original dataset, its imputed and hot-one encoded versions, and the corresponding spatial matrices for ther regions under scope;
+- `final-outputs/` containing the R Workspaces with all results of this research;
+- `pictures/` containing .png files I created and used.
 
 Should you have questions, please do not hesitate to contact me at h12039313@s.wu.ac.at :)

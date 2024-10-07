@@ -7,16 +7,6 @@ source("00_code/__functions.R")
 
 #Loading Data
 dataset_amelia <- read_csv("03_final-input/dataset_amelia.csv")
-W1 <- readRDS("03_final-input/idw.rds")
-idw1 <- W1
-idw1$neighbours <- rep(W1$neighbours, each = 11);
-idw1$weights <- rep(W1$weights, each = 11)
-
-attr(idw1$neighbours, "class") <- "nb"
-attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
-attr(idw1$neighbours, "sym") <- TRUE
-attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
-
 
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>%
@@ -71,7 +61,7 @@ datas_base <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, GFCF_share, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_base), value = TRUE)
 
 dilut_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
@@ -105,7 +95,7 @@ datas_fix <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_growth, GFCF_share, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_fix), value = TRUE)
 
 dilut_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="dilut", mcmc="bd", 
@@ -136,7 +126,7 @@ datas_spat <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, GFCF_share, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
 dilut_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
@@ -159,4 +149,5 @@ dilut_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext,
 rm(list = setdiff(ls(), c("dilut_base1", "dilut_base2", "dilut_base3",
                           "dilut_fix1", "dilut_fix2",
                           "dilut_spat1", "dilut_spat2", "dilut_spat3")))
-save.image(file = "04_final-output/Models-dilut.RData")
+save.image(file = "04_final-output/Models-annual.RData")
+rm(list = ls())

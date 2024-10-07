@@ -101,77 +101,8 @@ yFilt5 <- SpatialFiltering(datas_decade[, 1] ~ 1, ~-1, data = y,
                            nb = W5$neighbours, glist = W5$weights, style = "W", ExactEV = TRUE)
 
 WL_decade <- list(Col_A = fitted(yFilt1), Col_B = fitted(yFilt2), Col_C = fitted(yFilt3), Col_D = fitted(yFilt4), Col_E = fitted(yFilt5))
-
-datas_period <- GDP_capita_raw %>%
-  pivot_wider(names_from = Year,
-              values_from = GDP_capita) %>%
-  mutate(`2009` = (`2014`-`2009`)/`2009`,
-         `2015` = (`2019`-`2015`)/`2015`) %>%
-  select(NUTS, `2009`, `2015`) %>%
-  pivot_longer(cols = -"NUTS",
-               names_to = "Year",
-               values_to = "GDP_growth") %>% 
-  select(GDP_growth) %>% 
-  as.data.frame()
-
-idw1 <- W1
-idw1$neighbours <- rep(W1$neighbours, each = 2);
-idw1$weights <- rep(W1$weights, each = 2)
-
-attr(idw1$neighbours, "class") <- "nb"
-attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 2)
-attr(idw1$neighbours, "sym") <- TRUE
-attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
-
-idw2 <- W2
-idw2$neighbours <- rep(W2$neighbours, each = 2);
-idw2$weights <- rep(W2$weights, each = 2)
-
-attr(idw2$neighbours, "class") <- "nb"
-attr(idw2$neighbours, "region.id") <- rep(attr(W2$neighbours, "region.id"), each = 2)
-attr(idw2$neighbours, "sym") <- TRUE
-attr(idw2$neighbours, "call") <- attr(W2$neighbours, "call")
-
-idw3 <- W3
-idw3$neighbours <- rep(W3$neighbours, each = 2);
-idw3$weights <- rep(W3$weights, each = 2)
-
-attr(idw3$neighbours, "class") <- "nb"
-attr(idw3$neighbours, "region.id") <- rep(attr(W3$neighbours, "region.id"), each = 2)
-attr(idw3$neighbours, "sym") <- TRUE
-attr(idw3$neighbours, "call") <- attr(W3$neighbours, "call")
-
-idw4 <- W4
-idw4$neighbours <- rep(W4$neighbours, each = 2);
-idw4$weights <- rep(W4$weights, each = 2)
-
-attr(idw4$neighbours, "class") <- "nb"
-attr(idw4$neighbours, "region.id") <- rep(attr(W4$neighbours, "region.id"), each = 2)
-attr(idw4$neighbours, "sym") <- TRUE
-attr(idw4$neighbours, "call") <- attr(W4$neighbours, "call")
-
-idw5 <- W5
-idw5$neighbours <- rep(W5$neighbours, each = 2);
-idw5$weights <- rep(W5$weights, each = 2)
-
-attr(idw5$neighbours, "class") <- "nb"
-attr(idw5$neighbours, "region.id") <- rep(attr(W5$neighbours, "region.id"), each = 2)
-attr(idw5$neighbours, "sym") <- TRUE
-attr(idw5$neighbours, "call") <- attr(W5$neighbours, "call")
-
-y <- as.data.frame(datas_period[, 1, drop = F])
-yFilt1 <- SpatialFiltering(datas_period[, 1] ~ 1, ~-1, data = y,
-                           nb = idw1$neighbours, glist = idw1$weights, ExactEV = TRUE)
-yFilt2 <- SpatialFiltering(datas_period[, 1] ~ 1, ~-1, data = y,
-                           nb = idw2$neighbours, glist = idw2$weights, ExactEV = TRUE)
-yFilt3 <- SpatialFiltering(datas_period[, 1] ~ 1, ~-1, data = y,
-                           nb = idw3$neighbours, glist = idw3$weights, style = "B", ExactEV = TRUE)
-yFilt4 <- SpatialFiltering(datas_period[, 1] ~ 1, ~-1, data = y,
-                           nb = idw4$neighbours, glist = idw4$weights, style = "B", ExactEV = TRUE)
-yFilt5 <- SpatialFiltering(datas_period[, 1] ~ 1, ~-1, data = y,
-                           nb = idw5$neighbours, glist = idw5$weights, style = "W", ExactEV = TRUE)
-
-WL_period <- list(Col_A = fitted(yFilt1), Col_B = fitted(yFilt2), Col_C = fitted(yFilt3), Col_D = fitted(yFilt4), Col_E = fitted(yFilt5))
+WL_alt <- list(Col_C = fitted(yFilt3), Col_D = fitted(yFilt4))
+WL_alt_new <- list(Col_E = fitted(yFilt5), Col_F = fitted(yFilt5))
 
 # Visualization queen continuity network -------
 queen_lines <- listw2lines(W1, coords = st_centroid(geom$geometry))
@@ -188,7 +119,8 @@ ggplot(data = geom) +
 
 #SAVING
 saveRDS(WL_decade, file = "03_final-input/WL_10.rds")
-saveRDS(WL_period, file = "03_final-input/WL_5.rds")
+saveRDS(WL_alt, file = "03_final-input/WL_10_alt1.rds")
+saveRDS(WL_alt_new, file = "03_final-input/WL_10_alt2.rds")
 saveRDS(W1, file = "03_final-input/idw.rds")
 saveRDS(W4, file = "03_final-input/idw2.rds")
 saveRDS(W5, file = "03_final-input/idw5.rds")

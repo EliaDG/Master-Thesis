@@ -35,4 +35,6 @@ p_load(tidyverse,
        Amelia,
        corrplot,
        caret,
-       spatBMS)
+       spatBMS,
+       cowplot,
+       ggplotify)

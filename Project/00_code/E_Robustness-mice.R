@@ -7,16 +7,6 @@ source("00_code/__functions.R")
 
 #Loading Data
 dataset_amelia <- read_csv("03_final-input/dataset_mice.csv")
-W1 <- readRDS("03_final-input/idw.rds")
-idw1 <- W1
-idw1$neighbours <- rep(W1$neighbours, each = 11);
-idw1$weights <- rep(W1$weights, each = 11)
-
-attr(idw1$neighbours, "class") <- "nb"
-attr(idw1$neighbours, "region.id") <- rep(attr(W1$neighbours, "region.id"), each = 11)
-attr(idw1$neighbours, "sym") <- TRUE
-attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
-
 
 # HOT ONE ENCODING -----
 data <- dataset_amelia %>%
@@ -71,19 +61,19 @@ datas_base <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, GFCF_share, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_base), value = TRUE)
 
-mfls_mice_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
-                 burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
+mice_base1 = bms(datas_base[,!names(datas_base) %in% c("CEE", "Candidates", interaction)], 
+                 burn=3e+06, iter=10e+06, g="BRIC", mprior="dilut", mcmc="bd", 
                  user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_mice_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=3e+06, iter=10e+06,
-                 g="BRIC", mprior="random", mcmc="bd",
+mice_base2 = bms(datas_base[, !names(datas_base) %in% interaction], burn=3e+06, iter=10e+06,
+                 g="BRIC", mprior="dilut", mcmc="bd",
                  user.int=TRUE, force.full.ols = TRUE, fixed.reg = YF)
 
-mfls_mice_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
-                 g="BRIC", mprior="random", mcmc="bd.int",
+mice_base3 = bms(datas_base, burn=3e+06, iter=10e+06,
+                 g="BRIC", mprior="dilut", mcmc="bd.int",
                  user.int=TRUE, force.full.ols = TRUE)
 
 
@@ -105,13 +95,13 @@ datas_fix <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, Candidates, CEE, Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_growth, GFCF_share, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_fix), value = TRUE)
 
-mfls_mice_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
+mice_fix1 = bms(datas_fix[,!names(datas_fix) %in% interaction], burn=3e+06, iter=10e+06, g="BRIC", mprior="dilut", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
-mfls_mice_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="random", mcmc="bd", 
+mice_fix2 = bms(datas_fix, burn=3e+06, iter=10e+06, g="BRIC", mprior="dilut", mcmc="bd", 
                 user.int= TRUE, force.full.ols = TRUE, fixed.reg = TF)
 
 
@@ -136,27 +126,27 @@ datas_spat <- data_encoded %>%
          `Candidates#GDP_capita` = Candidates*GDP_capita,
          `CEE#Pop_edu_3` = CEE*Pop_edu_3,
          `Candidates#Pop_edu_3` = Candidates*Pop_edu_3) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_EUR, Coastal, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, GFCF_share, Pop_growth, Coastal, Eurozone))
 interaction <- grep("#", names(datas_spat), value = TRUE)
 
-mfls_mice_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
+mice_spat1 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade_ext, 
                           burn = 3e+06,iter = 10e+06,
                           nmodel=100, mcmc="bd", g="BRIC", 
-                          mprior="random", user.int = TRUE)
+                          mprior="dilut", user.int = TRUE)
 
-mfls_mice_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
+mice_spat2 = spatFilt.bms(X.data = datas_spat[,!names(datas_spat) %in% interaction], WList = WL_decade_ext, 
                           burn = 3e+06,iter = 10e+06,
                           nmodel=100, mcmc="bd", g="BRIC", 
-                          mprior="random", user.int = TRUE)
+                          mprior="dilut", user.int = TRUE)
 
-mfls_mice_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
+mice_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext, 
                           burn = 3e+06,iter = 10e+06,
                           nmodel=100, mcmc="bd.int", g="BRIC", 
-                          mprior="random", user.int = TRUE)
-
+                          mprior="dilut", user.int = TRUE)
 
 ### SAVING
-rm(list = setdiff(ls(), c("mfls_mice_base1", "mfls_mice_base2", "mfls_mice_base3",
-                          "mfls_mice_fix1", "mfls_mice_fix2",
-                          "mfls_mice_spat1", "mfls_mice_spat2", "mfls_mice_spat3")))
-save.image(file = "04_final-output/Models-mice.RData")
+rm(list = setdiff(ls(), c("mice_base1", "mice_base2", "mice_base3",
+                          "mice_fix1", "mice_fix2",
+                          "mice_spat1", "mice_spat2", "mice_spat3")))
+save.image(file = "04_final-output/Models-annual.RData")
+rm(list = ls())

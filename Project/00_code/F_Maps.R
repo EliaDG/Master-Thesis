@@ -22,6 +22,7 @@ World <- ne_countries(scale = "large", returnclass = "sf") %>%
   st_as_sf(., wkt = "geometry") %>% 
   mutate(subregion = as.factor(subregion))
 
+# COUNTRY MAP ----
 Extra <- World %>% 
   filter(admin %in% c("Republic of Serbia", 
                       "Bosnia and Herzegovina",
@@ -57,7 +58,7 @@ plot <- ggplot(data = World) +
         legend.background = element_rect(fill = "white", color = "black"),
         legend.key = element_rect(fill = "white", color = "black")) +
   labs(x = NULL, y = NULL,
-       title = "Area of Research",
+       title = "EU and its Candidates",
        caption = "Source: Eurostat, GADM") +
   coord_sf(xlim = c(-10, 48), ylim = c(35, 70)) +
   annotate("text", x = 18, y = 35, label = "Mediterranean Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
@@ -77,6 +78,7 @@ plot_1 <- plot +
   annotate("text", x = 47, y = 63, label = "Candidates:", size = 5, fontface = "bold", hjust = 1)
 
 
+# REGIONS MAP----
 # zipfile <- "01_data-input/Shapefiles/gadm41_MDA_shp.zip"
 # outdir <- "01_data-input/Shapefiles"
 # unzip(zipfile, exdir = outdir)
@@ -87,7 +89,6 @@ plot_1 <- plot +
 #   rename(NAME_1 = COUNTRY)
 # XKO <- st_read(dsn ="01_data-input/Shapefiles/gadm41_XKO_0.shp") %>% 
 #   rename(NAME_1 = COUNTRY)
-
 
 regions <- geom %>%
   mutate(Country = as.character(sapply(NUTS, mapping_nuts)),
@@ -130,7 +131,7 @@ plot_2 <- ggplot(data = World) +
   annotate("text", x = 0, y = 65, label = "North Sea", color = "blue", size = 3, angle = 0, fontface = "italic") +
   annotate("text", x = 18, y = 55.75, label = "Baltic Sea", color = "blue", size = 3, angle = 0, fontface = "italic")
 
-## Queen
+#SPATIAL NETWORKS ------
 queen_lines_N1 <- listw2lines(N1, coords = st_centroid(geom$geometry))
 queen_lines_N2 <- listw2lines(N2, coords = st_centroid(geom$geometry))
 queen_lines_K5 <- listw2lines(K5, coords = st_centroid(geom$geometry))
@@ -197,11 +198,11 @@ knn <- ggplot(data = World) +
 
 plot_3 <- (firstq | secondq | knn) +
   plot_annotation(
-    title = "Comparison of Spatial Connections",
+    title = "Comparison of Spatial Networks",
     caption = "Source: Eurostat, GADM",
     theme = theme(plot.title = element_text(face = "bold")))
 
-# DISTRIBUTION COEFF -------
+# DISTRIBUTION EFFECTS -------
 posterior_means <- coef(mfls_base3, exact = TRUE)
 var_mean <- posterior_means["Pop_edu_3",2]
 var_values <- data$Pop_edu_3
@@ -212,14 +213,14 @@ data.edu <- cbind(data, variable) %>%
   full_join(geom, by = "NUTS") %>% 
   rename(pred = ".") %>%
   group_by(NUTS) %>%
-  mutate(pred_average = mean(pred)) %>%
+  mutate(pred_average = mean(pred)*100) %>%
   ungroup() %>%
   filter(Year == 2019) %>%
   st_as_sf() %>% 
   mutate(pred_bin = cut(pred_average, breaks = 5, labels = FALSE))
 
 breaks_seq <- seq(min(data.edu$pred_average, na.rm = TRUE), max(data.edu$pred_average, na.rm = TRUE), length.out = 6)
-labels_seq <- sprintf("%.3f to %.3f", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
+labels_seq <- sprintf("%.2f%% to %.2f%%", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
 
 education <- ggplot(data = World) +
   geom_sf(color = "black") +
@@ -255,14 +256,14 @@ data.gdp <- cbind(data, variable) %>%
   full_join(geom, by = "NUTS") %>% 
   rename(pred = ".") %>%
   group_by(NUTS) %>%
-  mutate(pred_average = mean(pred)) %>%
+  mutate(pred_average = mean(pred)*100) %>%
   ungroup() %>%
   filter(Year == 2019) %>%
   st_as_sf() %>% 
   mutate(pred_bin = cut(pred_average, breaks = 5, labels = FALSE))
 
 breaks_seq <- seq(min(data.gdp$pred_average, na.rm = TRUE), max(data.gdp$pred_average, na.rm = TRUE), length.out = 6)
-labels_seq <- sprintf("%.3f to %.3f", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
+labels_seq <- sprintf("%.2f%% to %.2f%%", breaks_seq[-length(breaks_seq)], breaks_seq[-1])
 
 convergence  <- ggplot(data = World) +
   geom_sf(color = "black") +
@@ -297,5 +298,5 @@ plot_4 <- (convergence |education) +
 # SAVING
 ggsave("05_pictures/country.png", plot = plot_1, device = "png", width = 12.8, height = 9.06)
 ggsave("05_pictures/nuts2.png", plot = plot_2, device = "png", width = 12.8, height = 9.06)
-ggsave("05_pictures/network.png", plot = plot_3, device = "png", width = 14, height = 10)
-ggsave("05_pictures/coeff.png", plot = plot_4, device = "png", width = 14, height = 10)
+ggsave("05_pictures/network.png", plot = plot_3, device = "png", width = 15, height = 12)
+ggsave("05_pictures/coeff.png", plot = plot_4, device = "png", width = 15, height = 12)

@@ -63,7 +63,7 @@ subdatas_base <- subdata_encoded %>%
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
          `CEE#GVA_industry` = CEE*GVA_industry,
          `CEE#GVA_construction` = CEE*GVA_construction) %>%  
-  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, GFCF_share, Eurozone))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 eu_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", interaction)], burn=3e+06, iter=10e+06,
@@ -88,16 +88,16 @@ subdatas_fix <- subdata_encoded %>%
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
          `CEE#GVA_industry` = CEE*GVA_industry,
          `CEE#GVA_construction` = CEE*GVA_construction) %>%  
-  select(-c(Name, NUTS, CEE, Wage_growth, Coastal, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, CEE, Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 eu_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd",
-                 force.full.ols = TRUE, user.int= TRUE)
+                 force.full.ols = TRUE, user.int= TRUE, fixed.reg = CF)
 
 eu_fix2 = bms(subdatas_fix, burn=3e+06, iter=10e+06,
                  g="BRIC", mprior="random", mcmc="bd",
-                 force.full.ols = TRUE, user.int= TRUE)
+                 force.full.ols = TRUE, user.int= TRUE, fixed.reg = CF)
 
 # TEST: SAR+BMA -----
 WL_eu <- readRDS("03_final-input/WL_10_eu.rds")
@@ -111,7 +111,7 @@ subdatas_spat <- subdata_encoded %>%
          `CEE#GVA_agriculture` = CEE*GVA_agriculture,
          `CEE#GVA_industry` = CEE*GVA_industry,
          `CEE#GVA_construction` = CEE*GVA_construction) %>%  
-  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, GFCF_share, Eurozone))
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 

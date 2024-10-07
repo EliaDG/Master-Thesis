@@ -6,11 +6,13 @@ source("00_code/__packages.R")
 source("00_code/__functions.R")
 
 #Loading Data
-data <- read_csv("03_final-input/dataset_amelia.csv") %>% 
-  select(NUTS, Name, Year, Pop_edu_3, GDP_capita) %>% 
-  #filter(Year %in% c(2009:2019)) %>% 
-  filter(Year == 2009)
+load("04_final-output/Models-annual.RData")
 load("04_final-output/Models-decade.RData")
+
+dataset <- read_csv("03_final-input/dataset.csv") %>%
+  select(NUTS, Name, Year, GDP_capita) %>% 
+  mutate(GDP_capita = log(GDP_capita))
+
 W1 <- readRDS("03_final-input/idw.rds")
 idw1 <- W1
 idw1$neighbours <- rep(W1$neighbours, each = 11);
@@ -22,35 +24,27 @@ attr(idw1$neighbours, "sym") <- TRUE
 attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
 
 # PERFORMANCE STATISTICS AND SPAT AUTOCORRELATION --------
-model <- dec_spat3
-model
+model <- mfls_spat3; model
 pmp.bma(model)[1,]
 colSums(pmp.bma(model)[1:25,])
 colSums(pmp.bma(model)[1:50,])
 fullmodel.ssq(model)
+
+#Top Model
 lm_base1 <- lm(model.frame(as.zlm(model), model = 1)); summary(lm_base1)
 lm_res_base <- residuals(lm_base1)
 moran.test(lm_res_base, idw1)
-moran.test(lm_res_base, W1)
+#moran.test(lm_res_base, W1)
 
 # density(model[1:500], reg = "GVA_industry", addons = "mle")
 
-model_spat <- mfls_spat3
+model_spat <- mfls_spat3_alt2
 model_spat$Wcount
 pmpW.bma(model_spat)
 mTest = moranTest.bma(object = model_spat, variants = "double",
                        W = idw1, nmodel = 1)
-moran_results <- cbind(
-  Moran_I = sapply(mTest$moran, function(x) x$estimate[1]),
-  SD = sqrt(sapply(mTest$moran, function(x) x$estimate[3])),
-  P_value = sapply(mTest$moranEV, function(x) x$p.value)
-); moran_results
-
 
 # BETA CONVERGENCE -------
-dataset <- read_csv("03_final-input/dataset.csv") %>%
-  select(NUTS, Name, Year, GDP_capita) %>% 
-  mutate(GDP_capita = log(GDP_capita))
 data <- dataset %>% 
   select(NUTS, Name, Year, GDP_capita) %>%
   pivot_longer(cols = -c(NUTS, Name, Year),
@@ -102,6 +96,10 @@ plot_5 <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
         legend.title = element_text(face = "bold", size = 14),
         legend.text = element_text(size = 14),
         plot.caption = element_text(hjust = 1, face = "italic", size = 12))
+
+# COMPARISON SPAT COEFFICIENTS -----
+plot_6 <- plotComp(Base=mfls_spat3, "Only QC" = mfls_spat3_alt1, "Only kNN"=mfls_spat3_alt2, add.grid= T)
+plot_7 <- plotComp(Base=mfls_spat3, "Only QC" = mfls_spat3_alt1, "Only kNN"=mfls_spat3_alt2, comp="Post Mean", add.grid=T)
 
 # SAVING
 ggsave("05_pictures/betaconv.png", plot = plot_5, device = "png", width = 14, height = 10)

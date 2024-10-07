@@ -60,7 +60,7 @@ subdatas_base <- subdata_encoded %>%
          `Candidates#GVA_agriculture` = Candidates*GVA_agriculture,
          `Candidates#GVA_industry` = Candidates*GVA_industry,
          `Candidates#GVA_construction` = Candidates*GVA_construction) %>%  
-  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 cesee_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("Candidates", interaction)], burn=3e+06, iter=10e+06,
@@ -84,16 +84,16 @@ subdatas_fix <- subdata_encoded %>%
          `Candidates#GVA_agriculture` = Candidates*GVA_agriculture,
          `Candidates#GVA_industry` = Candidates*GVA_industry,
          `Candidates#GVA_construction` = Candidates*GVA_construction) %>%  
-  select(-c(Name, NUTS, Candidates, Wage_growth, Coastal, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, Candidates, Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 cesee_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
                g="BRIC", mprior="random", mcmc="bd",
-               force.full.ols = TRUE, user.int= TRUE)
+               force.full.ols = TRUE, user.int= TRUE, fixed.reg = CF)
 
 cesee_fix2 = bms(subdatas_fix, burn=3e+06, iter=10e+06,
                g="BRIC", mprior="random", mcmc="bd",
-               force.full.ols = TRUE, user.int= TRUE)
+               force.full.ols = TRUE, user.int= TRUE, fixed.reg = CF)
 
 # TEST: SAR+BMA -----
 WL_cesee <- readRDS("03_final-input/WL_10_cesee.rds")
@@ -106,7 +106,7 @@ subdatas_spat <- subdata_encoded %>%
          `Candidates#GVA_agriculture` = Candidates*GVA_agriculture,
          `Candidates#GVA_industry` = Candidates*GVA_industry,
          `Candidates#GVA_construction` = Candidates*GVA_construction) %>%  
-  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 

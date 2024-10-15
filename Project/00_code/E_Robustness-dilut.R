@@ -28,8 +28,6 @@ data_encoded$Country <- NULL
 data_encoded$Year <- NULL
 colnames(data_encoded) <- make.names(colnames(data_encoded))
 
-write.csv(data_encoded, file = here("03_final-input", "encoded_dataset.csv"), row.names = FALSE)
-
 CF <- c("C_Albania", "C_Austria", "C_Belgium", "C_Bosnia.and.Herzegovina", "C_Bulgaria", 
         "C_Croatia", "C_Cyprus", "C_Czech.Republic", "C_Denmark", "C_Estonia", "C_Finland", 
         "C_Germany", "C_Greece", "C_Hungary", "C_Ireland", "C_Italy", "C_Kosovo", 
@@ -149,5 +147,5 @@ dilut_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext,
 rm(list = setdiff(ls(), c("dilut_base1", "dilut_base2", "dilut_base3",
                           "dilut_fix1", "dilut_fix2",
                           "dilut_spat1", "dilut_spat2", "dilut_spat3")))
-save.image(file = "04_final-output/Models-annual.RData")
+save.image(file = "04_final-output/Models-dilut.RData")
 rm(list = ls())

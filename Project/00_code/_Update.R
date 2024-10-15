@@ -141,57 +141,41 @@ Pop_3 <- ggplot(World) +
   coord_sf(xlim = c(-10, 48), ylim = c(35, 70))
 grid.arrange(Pop_1, Pop_2, Pop_3, nrow = 1)
 
+# NEET Share
+data <- dataset %>%
+  filter(Year == 2019) %>%
+  select(Name, NUTS, NEET_share, CEE, Candidates)
+
+avg_neet_CEE_1 <- data %>%
+  filter(CEE == 1) %>%
+  summarise(avg_neet = mean(NEET_share, na.rm = TRUE))
+
+avg_neet_Cand_1 <- data %>%
+  filter(Candidates == 1) %>%
+  summarise(avg_neet = mean(NEET_share, na.rm = TRUE))
+
+avg_neet_CEE_0_Cand_0 <- data %>%
+  filter(CEE == 0 & Candidates == 0) %>%
+  summarise(avg_neet = mean(NEET_share, na.rm = TRUE))
+
+# Print the results
+avg_neet_CEE_1
+avg_neet_Cand_1
+avg_neet_CEE_0_Cand_0
+
+
+
 
 # Models ------
 
 
 # Complete dataset
 # Time fixed effects as fixed regressor (except with heredity principle)
-mfls_base        # No dummies
 mfls_base1       # No CEE, Candidates, Interactions
 mfls_base2       # No Interactions
 mfls_base3       # Heredity principle
-#---------#
-# Pop_edu_3/GDP_capita/Capital as fixed regressor
-alt_base        # Without interactions
-alt_base1       # With interactions
-alt_base2       # Without fixed regressors and interactions
-
-mfls_fix        # No dummies, but with year and country fixed effects as fixed regressor
-mfls_fix1       # With year and country fixed effects as fixed regressor
-mfls_fix2       # With only country effect as fixed regressor
-# No interactions because of perfect multicollinearity with countries dummy
-#--------#
-alt_fix         # With Pop_edu_3/GDP_capita/Capital as fixed regressor
-alt_fix1        # Without fixed regressors 
 
 
-# CESEE Dataset
-# Time fixed effects as fixed regressor
-cesee_base        # No dummies
-cesee_base1       # No EU, Interactions
-cesee_base2
-cesee_base3       # Heredity principle
-
-cesee_fix        # No dummies, but with year and country fixed effects as fixed regressor
-cesee_fix1       # With year and country fixed effects as fixed regressor
-cesee_fix2       # With only country effect as fixed regressor
-cesee_fix3       # No fixed regressor
-
-
-# Splitted Dataset
-sub_base        # With time fixed effects as fixed regressor but no interactions
-sub_base1       # Without fixed regressor and interactions
-sub_base2       # Heredity principle
-
-sub_fix         # With time and country fixed effects
-sub_fix1        # With only country effects
-sub_fix2        # No fixed regressors
-
-# Alternative model priors
-fixed_base
-unifom_base
-pip_base
-
-uniform_fix
-pip_fix
+dec_base1       # No CEE, Candidates, Interactions
+dec_base2       # No Interactions
+dec_base3       # Heredity principle

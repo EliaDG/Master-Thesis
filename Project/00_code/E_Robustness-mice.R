@@ -148,5 +148,5 @@ mice_spat3 = spatFilt.bms(X.data = datas_spat, WList = WL_decade_ext,
 rm(list = setdiff(ls(), c("mice_base1", "mice_base2", "mice_base3",
                           "mice_fix1", "mice_fix2",
                           "mice_spat1", "mice_spat2", "mice_spat3")))
-save.image(file = "04_final-output/Models-annual.RData")
+save.image(file = "04_final-output/Models-mice.RData")
 rm(list = ls())

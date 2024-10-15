@@ -24,25 +24,33 @@ attr(idw1$neighbours, "sym") <- TRUE
 attr(idw1$neighbours, "call") <- attr(W1$neighbours, "call")
 
 # PERFORMANCE STATISTICS AND SPAT AUTOCORRELATION --------
-model <- mfls_spat3; model
+model <- mfls_base1; model
 pmp.bma(model)[1,]
 colSums(pmp.bma(model)[1:25,])
 colSums(pmp.bma(model)[1:50,])
 fullmodel.ssq(model)
 
 #Top Model
-lm_base1 <- lm(model.frame(as.zlm(model), model = 1)); summary(lm_base1)
-lm_res_base <- residuals(lm_base1)
+model <- mfls_spat3
+lm_base <- lm(model.frame(as.zlm(model), model = 1)); summary(lm_base)
+lm_res_base <- residuals(lm_base)
 moran.test(lm_res_base, idw1)
 #moran.test(lm_res_base, W1)
 
-# density(model[1:500], reg = "GVA_industry", addons = "mle")
-
-model_spat <- mfls_spat3_alt2
+model_spat <- mfls_spat1
 model_spat$Wcount
 pmpW.bma(model_spat)
 mTest = moranTest.bma(object = model_spat, variants = "double",
-                       W = idw1, nmodel = 1)
+                       W = idw1, nmodel = 1); mTest
+
+#DISTRIBUTION DENSITIES ----
+density(mfls_base1[1:500], reg = "GVA_industry", addons = "mle")
+density(mfls_base2[1:500], reg = "GVA_industry", addons = "mle")
+density(mfls_base3[1:500], reg = "GVA_industry", addons = "mle")
+
+density(mfls_base1[1:500], reg = "CEE#Pop_edu_3", addons = "mle")
+density(mfls_base2[1:500], reg = "Pop_edu_3", addons = "mle")
+density(mfls_base3[1:500], reg = "CEE#Pop_edu_3", addons = "mle")
 
 # BETA CONVERGENCE -------
 data <- dataset %>% 
@@ -98,8 +106,33 @@ plot_5 <- ggplot(data, aes(x = `2009`, y = GDP_gg)) +
         plot.caption = element_text(hjust = 1, face = "italic", size = 12))
 
 # COMPARISON SPAT COEFFICIENTS -----
-plot_6 <- plotComp(Base=mfls_spat3, "Only QC" = mfls_spat3_alt1, "Only kNN"=mfls_spat3_alt2, add.grid= T)
-plot_7 <- plotComp(Base=mfls_spat3, "Only QC" = mfls_spat3_alt1, "Only kNN"=mfls_spat3_alt2, comp="Post Mean", add.grid=T)
+names <- c("Pop_edu_3", "Candidates", "Candidates#Pop_edu_3", "GVA_construction", "Wage_EUR", 
+           "GVA_industry", "Candidates#GVA_industry", "Labor_Prodx", "NEET_share", "Capital", 
+           "Unemployment_rate", "Output_density", "Pop_edu_2", "Pop_edu_1", 
+           "Candidates#GVA_construction", "Population_density", "Employment_rate", "GDP_capita", 
+           "Employment_density", "CEE", "GVA_services", "inv_rate", "Activity_rate", 
+           "GVA_agriculture", "GVA_public", "CEE#Pop_edu_3", "Migration_rate", "Border", 
+           "Life_exp", "Dist_BRUX", "Fertility_rate", "Objective_1", "Island", 
+           "CEE#Capital", "Candidates#GVA_services", "Candidates#Capital", 
+           "Candidates#GVA_public", "Candidates#GDP_capita", "CEE#GVA_agriculture", 
+           "Candidates#GVA_agriculture", "CEE#GVA_construction", "CEE#GVA_industry", 
+           "CEE#GVA_services", "CEE#GDP_capita", "CEE#GVA_public")
+
+plot_6 <- plotComp(Base=mfls_spat3, "Only QC" = mfls_spat3_alt1, "Only kNN"=mfls_spat3_alt2, include.legend = F, add.grid= T, varNr=names)
+legend("topright", 
+       legend = c("Base", "Only QC", "Only kNN"),  # Labels for the legend
+       col = c("green", "orange", "purple"),       # Colors matching the series
+       pch = c(1, 2, 3),                           # Point characters (1 = circle, 2 = triangle, 3 = plus sign)
+       pt.cex = 1.2,                               # Scaling the points if necessary
+       bty = "Y")                                  # No box around the legend
+
+plot_7 <- plotComp(Base = mfls_spat3, "Only QC" = mfls_spat3_alt1, "Only kNN" = mfls_spat3_alt2, include.legend = F, comp = "Post Mean", add.grid = TRUE, varNr = names)
+legend("bottomright", 
+       legend = c("Base", "Only QC", "Only kNN"),
+       col = c("green", "orange", "purple"),
+       pch = c(1, 2, 3),
+       pt.cex = 1.2,
+       bty = "Y")
 
 # SAVING
 ggsave("05_pictures/betaconv.png", plot = plot_5, device = "png", width = 14, height = 10)

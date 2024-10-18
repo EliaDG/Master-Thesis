@@ -66,7 +66,7 @@ subdatas_base <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%  
-  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Wage_EUR, NEET_share, Coastal, GFCF_share, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_base), value = TRUE)
 
 dec_base1 = bms(subdatas_base[,!names(subdatas_base) %in% c("CEE", "Candidates", interaction)], burn=3e+06, iter=10e+06,
@@ -97,7 +97,7 @@ subdatas_fix <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>%
-  select(-c(Name, NUTS, Candidates, CEE, Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, Candidates, CEE, Wage_growth, Coastal, GFCF_share, Pop_growth, Wage_EUR, NEET_share, Eurozone))
 interaction <- grep("#", names(subdatas_fix), value = TRUE)
 
 dec_fix1 = bms(subdatas_fix[,!names(subdatas_fix) %in% interaction], burn=3e+06, iter=10e+06,
@@ -127,7 +127,7 @@ subdatas_spat <- subdata_encoded %>%
          `Candidates#GVA_construction` = Candidates*GVA_construction,
          `CEE#GDP_capita` = CEE*GDP_capita,
          `Candidates#GDP_capita` = Candidates*GDP_capita) %>% 
-  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, GFCF_share, Pop_growth, Eurozone))
+  select(-c(Name, NUTS, starts_with("C_"), Wage_growth, Coastal, GFCF_share, Wage_EUR, NEET_share, Pop_growth, Eurozone))
 interaction <- grep("#", names(subdatas_spat), value = TRUE)
 
 dec_spat1 = spatFilt.bms(X.data = subdatas_spat[,!names(subdatas_spat) %in% c("CEE", "Candidates", interaction)], WList = WL_decade, 
@@ -145,19 +145,9 @@ dec_spat3 = spatFilt.bms(X.data = subdatas_spat, WList = WL_decade,
                          nmodel=100, mcmc="bd.int", g="BRIC", 
                          mprior="random", user.int = TRUE)
 
-dec_spat3_alt1 = spatFilt.bms(X.data = subdatas_spat, WList = WL_decade_alt1, 
-                               burn = 3e+06,iter = 10e+06,
-                               nmodel=100, mcmc="bd.int", g="BRIC", 
-                               mprior="random", user.int = TRUE)
-dec_spat3_alt2 = spatFilt.bms(X.data = subdatas_spat, WList = WL_decade_alt2, 
-                               burn = 3e+06,iter = 10e+06,
-                               nmodel=100, mcmc="bd.int", g="BRIC", 
-                               mprior="random", user.int = TRUE)
-
 ### SAVING
 rm(list = setdiff(ls(), c("dec_base1", "dec_base2", "dec_base3",
                           "dec_fix1", "dec_fix2",
-                          "dec_spat1", "dec_spat2", "dec_spat3",
-                          "dec_spat3_alt1", "dec_spat3_alt2")))
+                          "dec_spat1", "dec_spat2", "dec_spat3")))
 save.image(file = "04_final-output/Models-decade.RData")
 rm(list = ls())
